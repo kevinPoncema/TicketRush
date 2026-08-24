@@ -1,0 +1,94 @@
+@startuml
+' Configuración visual
+hide circle
+skinparam linetype ortho
+
+' Entidades
+
+entity "tenants" as tenants {
+  *id : VARCHAR <<PK>>
+  --
+  *name : VARCHAR
+  created_at : TIMESTAMP
+}
+
+entity "users" as users {
+  *id : VARCHAR <<PK>>
+  --
+  *tenant_id : VARCHAR <<FK>>
+  *name : VARCHAR
+  *email : VARCHAR
+  *password : VARCHAR
+  role : ENUM
+  created_at : TIMESTAMP
+}
+
+entity "tenant_configs" as tenant_configs {
+  *tenant_id : VARCHAR <<PK, FK>>
+  --
+  webhook_url : VARCHAR
+  updated_at : TIMESTAMP
+}
+
+entity "events" as events {
+  *id : VARCHAR <<PK>>
+  --
+  *tenant_id : VARCHAR <<FK>>
+  *name : VARCHAR
+  *date : TIMESTAMP
+  *location : VARCHAR
+  created_at : TIMESTAMP
+}
+
+entity "ticket_tiers" as ticket_tiers {
+  *id : VARCHAR <<PK>>
+  --
+  *event_id : VARCHAR <<FK>>
+  *name : VARCHAR
+  *price : DECIMAL(10,2)
+  *capacity : INT
+  *available_stock : INT
+  created_at : TIMESTAMP
+}
+
+entity "clients" as clients {
+  *id : VARCHAR <<PK>>
+  --
+  *email : VARCHAR
+  *name : VARCHAR
+  created_at : TIMESTAMP
+}
+
+entity "orders" as orders {
+  *id : VARCHAR <<PK>>
+  --
+  *client_id : VARCHAR <<FK>>
+  *total_amount : DECIMAL(10,2)
+  status : ENUM
+  *idempotency_key : VARCHAR
+  expires_at : TIMESTAMP
+  created_at : TIMESTAMP
+}
+
+entity "tickets" as tickets {
+  *id : VARCHAR <<PK>>
+  --
+  *order_id : VARCHAR <<FK>>
+  *ticket_tier_id : VARCHAR <<FK>>
+  status : ENUM
+  signature : VARCHAR
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+' Relaciones
+
+tenants ||--o{ users
+tenants ||--o| tenant_configs
+tenants ||--o{ events
+events ||--o{ ticket_tiers
+clients ||--o{ orders
+orders ||--o{ tickets
+ticket_tiers ||--o{ tickets
+
+@enduml
