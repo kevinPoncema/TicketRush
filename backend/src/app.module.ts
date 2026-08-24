@@ -1,9 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { JobsModule } from './jobs/jobs.module';
+
 import { Tenant } from './models/tenant.entity';
 import { User } from './models/user.entity';
 import { TenantConfig } from './models/tenant-config.entity';
@@ -13,6 +16,20 @@ import { Client } from './models/client.entity';
 import { Order } from './models/order.entity';
 import { Ticket } from './models/ticket.entity';
 
+import { TenantRepository } from './Repositories/tenant.repository';
+import { EventRepository } from './Repositories/event.repository';
+import { UserRepository } from './Repositories/user.repository';
+
+import { TenantService } from './services/tenant.service';
+import { EventService } from './services/event.service';
+import { AuthService } from './services/auth.service';
+
+import { TenantController } from './controllers/tenant.controller';
+import { EventController } from './controllers/event.controller';
+import { AuthController } from './controllers/auth.controller';
+
+import { AuthMiddleware } from './middlewares/auth.middleware';
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -21,7 +38,7 @@ import { Ticket } from './models/ticket.entity';
       entities: [Tenant, User, TenantConfig, Event, TicketTier, Client, Order, Ticket],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([Order, Ticket, TicketTier, Client]),
+    TypeOrmModule.forFeature([Order, Ticket, TicketTier, Client, Tenant, Event, User]),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
@@ -31,9 +48,31 @@ import { Ticket } from './models/ticket.entity';
     BullModule.registerQueue({
       name: 'reserve-queue',
     }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'super-secret-ticketrush-key',
+      signOptions: { expiresIn: '1d' },
+    }),
     JobsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, AuthController, TenantController, EventController],
+  providers: [
+    AppService,
+    TenantRepository,
+    EventRepository,
+    UserRepository,
+    TenantService,
+    EventService,
+    AuthService
+  ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .exclude(
+        { path: 'auth/login', method: RequestMethod.POST },
+        { path: 'auth/register', method: RequestMethod.POST }
+      )
+      .forRoutes('*');
+  }
+}
