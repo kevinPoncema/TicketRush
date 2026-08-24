@@ -4,26 +4,25 @@ import { Event } from '../models/event.entity';
 
 @Injectable()
 export class EventService {
-  constructor(private readonly eventRepository: EventRepository) { }
+  constructor(private readonly eventRepository: EventRepository) {}
 
   async createEvent(tenantId: string, data: Partial<Event>): Promise<Event> {
     return this.eventRepository.create({ ...data, tenantId });
   }
 
   async getEventsByTenant(tenantId: string): Promise<Event[]> {
-    const all = await this.eventRepository.findAll();
-    return all.filter(e => e.tenantId === tenantId);
+    return this.eventRepository.findAllByTenant(tenantId);
   }
 
-  async getEvent(id: string): Promise<Event> {
-    return this.eventRepository.findById(id);
+  async getEvent(id: string, tenantId: string): Promise<Event> {
+    return this.eventRepository.findByIdAndTenant(id, tenantId);
   }
 
-  async updateEvent(id: string, data: Partial<Event>): Promise<Event> {
-    return this.eventRepository.update(id, data);
+  async updateEvent(id: string, tenantId: string, data: Partial<Event>): Promise<Event> {
+    return this.eventRepository.update(id, tenantId, data);
   }
 
-  async deleteEvent(id: string): Promise<void> {
-    return this.eventRepository.delete(id);
+  async deleteEvent(id: string, tenantId: string): Promise<void> {
+    return this.eventRepository.delete(id, tenantId);
   }
 }

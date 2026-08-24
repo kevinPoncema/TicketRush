@@ -1,15 +1,13 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, Req } from '@nestjs/common';
 import { EventService } from '../services/event.service';
-import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
 @Controller('events')
 export class EventController {
-  constructor(private readonly eventService: EventService) { }
+  constructor(private readonly eventService: EventService) {}
 
   @Post()
   create(@Req() req: any, @Body() data: any) {
-    const tenantId = req.user.tenantId;
-    return this.eventService.createEvent(tenantId, data);
+    return this.eventService.createEvent(req.user.tenantId, data);
   }
 
   @Get()
@@ -18,17 +16,17 @@ export class EventController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.eventService.getEvent(id);
+  findOne(@Req() req: any, @Param('id') id: string) {
+    return this.eventService.getEvent(id, req.user.tenantId);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: any) {
-    return this.eventService.updateEvent(id, data);
+  update(@Req() req: any, @Param('id') id: string, @Body() data: any) {
+    return this.eventService.updateEvent(id, req.user.tenantId, data);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.eventService.deleteEvent(id);
+  remove(@Req() req: any, @Param('id') id: string) {
+    return this.eventService.deleteEvent(id, req.user.tenantId);
   }
 }
