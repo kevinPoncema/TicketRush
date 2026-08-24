@@ -1,0 +1,8 @@
+model TenantConfig {
+  tenantId   String   @id @map("tenant_id")
+  webhookUrl String?  @map("webhook_url")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@map("tenant_configs")
+}

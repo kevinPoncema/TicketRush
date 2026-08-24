@@ -1,0 +1,20 @@
+model Ticket {
+  id           String       @id @default(uuid())
+  orderId      String       @map("order_id")
+  ticketTierId String       @map("ticket_tier_id")
+  status       TicketStatus @default(RESERVED)
+  signature    String?      @unique
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  order        Order        @relation(fields: [orderId], references: [id])
+  ticketTier   TicketTier   @relation(fields: [ticketTierId], references: [id])
+
+  @@map("tickets")
+}
+
+enum TicketStatus {
+  RESERVED
+  VALID
+  USED
+  EXPIRED
+}
