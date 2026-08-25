@@ -40,12 +40,16 @@ export const EventService = {
   async getEvent(id: string) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const eventsStr = localStorage.getItem('mock_events')
-        const events = eventsStr ? JSON.parse(eventsStr) : []
-        const event = events.find((e: any) => e.id === id)
-        if (event) resolve(event)
-        else reject(new Error('Event not found'))
-      }, 300)
-    })
+        try {
+          const eventsStr = localStorage.getItem('mock_events');
+          const events = eventsStr ? JSON.parse(eventsStr) : [];
+          const event = events.find((e: any) => String(e.id) === String(id));
+          if (event) resolve(event);
+          else reject(new Error('Event not found'));
+        } catch (e) {
+          reject(e);
+        }
+      }, 300);
+    });
   }
 }

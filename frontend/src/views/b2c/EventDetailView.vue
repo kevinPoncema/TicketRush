@@ -7,7 +7,8 @@ const router = useRouter()
 const route = useRoute()
 
 const event = ref<any>(null)
-const loading = ref(true)
+const loading = ref(true); console.log('Component setup executing');
+const errorMsg = ref('')
 
 // Cantidades seleccionadas por tier (tierId -> quantity)
 const selections = ref<Record<string, number>>({})
@@ -18,12 +19,13 @@ async function loadEvent() {
     const data: any = await EventService.getEvent(id)
     event.value = data
     // Inicializar contadores en 0
+    if (!data.tiers) data.tiers = [];
     data.tiers.forEach((t: any) => {
       selections.value[t.id] = 0
     })
-  } catch (e) {
-    alert('Evento no encontrado')
-    router.push('/')
+  } catch (e: any) {
+    console.error('Error loading event:', e);
+    errorMsg.value = 'Evento no encontrado o ID inválido. Por favor, intenta de nuevo.';
   } finally {
     loading.value = false
   }
@@ -45,7 +47,7 @@ const totalPrice = computed(() => {
   if (!event.value) return 0
   let sum = 0
   event.value.tiers.forEach((t: any) => {
-    sum += (selections.value[t.id] || 0) * t.price
+    sum += (selections.value[t.id] || 0) * Number(t.price)
   })
   return sum
 })
@@ -60,7 +62,7 @@ function proceedToCheckout() {
       .filter(([_, qty]) => qty > 0)
       .map(([id, qty]) => {
         const tier = event.value.tiers.find((t:any) => t.id === id)
-        return { tierId: id, name: tier.name, price: tier.price, quantity: qty }
+        return { tierId: id, name: tier.name, price: Number(tier.price), quantity: qty }
       })
   }
   
@@ -69,17 +71,26 @@ function proceedToCheckout() {
 }
 
 onMounted(() => {
+  console.log('EventDetailView mounted. ID:', route.params.id);
+
   loadEvent()
 })
 
 function formatDate(dateStr: string) {
+  if (!dateStr) return 'Fecha por definir'
   return new Date(dateStr).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 </script>
 
 <template>
   <div class="min-h-screen bg-[#131313] text-white">
-    <div v-if="loading" class="flex items-center justify-center min-h-screen">
+    <div v-if="errorMsg" class="flex flex-col items-center justify-center min-h-screen text-center px-4">
+      <div class="text-red-500 font-bold text-2xl mb-2">Ups, algo salió mal</div>
+      <p class="text-gray-400 mb-6">{{ errorMsg }}</p>
+      <button @click="router.push('/')" class="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">Volver al inicio</button>
+    </div>
+    
+    <div v-else-if="loading" class="flex items-center justify-center min-h-screen">
       <div class="animate-pulse text-violet-400 font-bold text-xl">Cargando experiencia...</div>
     </div>
     
@@ -116,7 +127,7 @@ function formatDate(dateStr: string) {
           <div v-for="tier in event.tiers" :key="tier.id" class="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-gray-700 transition-colors">
             <div>
               <h3 class="text-xl font-bold text-violet-100">{{ tier.name }}</h3>
-              <p class="text-violet-400 font-mono text-lg mt-1">${{ tier.price.toFixed(2) }} <span class="text-xs text-gray-500 font-sans uppercase">USD</span></p>
+              <p class="text-violet-400 font-mono text-lg mt-1">${{ Number(tier.price).toFixed(2) }} <span class="text-xs text-gray-500 font-sans uppercase">USD</span></p>
             </div>
             
             <div class="flex items-center gap-4 bg-[#131313] p-1.5 rounded-xl border border-gray-800 self-end md:self-auto">
