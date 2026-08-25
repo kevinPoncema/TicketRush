@@ -55,6 +55,68 @@ export const MockApiService = {
     });
   },
 
+  async getUpcomingEventsByTenant(tenantId: string) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Buscar eventos guardados en localStorage desde el B2B
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('ticketrush_events_'))
+        let allEvents: any[] = []
+        for (const k of keys) {
+          try {
+            const evts = JSON.parse(localStorage.getItem(k) || '[]')
+            allEvents = allEvents.concat(evts)
+          } catch { /* ignorar entradas corruptas */ }
+        }
+
+        const now = new Date()
+        const upcoming = allEvents
+          .filter(e => e.tenantId === tenantId && new Date(e.date) >= now)
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+        if (upcoming.length > 0) {
+          resolve(upcoming)
+          return
+        }
+
+        // Fallback mock si no hay eventos guardados
+        resolve([
+          {
+            id: 'mock-evt-1',
+            tenantId,
+            name: 'Neon Nights Festival',
+            date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 15).toISOString(),
+            location: 'Arena VANTAGE, Ciudad',
+            tiers: [
+              { id: 't1', name: 'General', price: 45.00, capacity: 200, description: '' },
+              { id: 't2', name: 'VIP Backstage', price: 150.00, capacity: 20, description: 'Acceso exclusivo a zona VIP y barra libre.' }
+            ]
+          },
+          {
+            id: 'mock-evt-2',
+            tenantId,
+            name: 'Circuit Breaker Vol. 3',
+            date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 45).toISOString(),
+            location: 'Club Obsidian',
+            tiers: [
+              { id: 't3', name: 'Early Bird', price: 30.00, capacity: 50, description: 'Precio de acceso anticipado, cupos muy limitados.' },
+              { id: 't4', name: 'General', price: 55.00, capacity: 300, description: '' }
+            ]
+          },
+          {
+            id: 'mock-evt-3',
+            tenantId,
+            name: 'SYNC: Techno Summit',
+            date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 90).toISOString(),
+            location: 'Warehouse District',
+            tiers: [
+              { id: 't5', name: 'General', price: 80.00, capacity: 500, description: '' }
+            ]
+          }
+        ])
+      }, 600)
+    })
+  },
+
   async recoverByPin(email: string, pin: string) {
     return new Promise((resolve) => {
       setTimeout(() => {
