@@ -22,18 +22,21 @@ import { EventRepository } from './Repositories/event.repository';
 import { UserRepository } from './Repositories/user.repository';
 import { TenantConfigRepository } from './Repositories/tenant-config.repository';
 import { TicketTierRepository } from './Repositories/ticket-tier.repository';
+import { OrderRepository } from './Repositories/order.repository';
 
 import { TenantService } from './services/tenant.service';
 import { EventService } from './services/event.service';
 import { AuthService } from './services/auth.service';
 import { TenantConfigService } from './services/tenant-config.service';
 import { TicketTierService } from './services/ticket-tier.service';
+import { OrderService } from './services/order.service';
 
 import { TenantController } from './controllers/tenant.controller';
 import { EventController } from './controllers/event.controller';
 import { AuthController } from './controllers/auth.controller';
 import { TenantConfigController } from './controllers/tenant-config.controller';
 import { TicketTierController } from './controllers/ticket-tier.controller';
+import { OrderController } from './controllers/order.controller';
 
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { RolesGuard } from './guards/roles.guard';
@@ -68,7 +71,8 @@ import { RolesGuard } from './guards/roles.guard';
     TenantController, 
     EventController, 
     TenantConfigController,
-    TicketTierController
+    TicketTierController,
+    OrderController
   ],
   providers: [
     {
@@ -81,11 +85,13 @@ import { RolesGuard } from './guards/roles.guard';
     UserRepository,
     TenantConfigRepository,
     TicketTierRepository,
+    OrderRepository,
     TenantService,
     EventService,
     AuthService,
     TenantConfigService,
-    TicketTierService
+    TicketTierService,
+    OrderService
   ],
 })
 export class AppModule implements NestModule {
@@ -97,7 +103,9 @@ export class AppModule implements NestModule {
         { path: 'auth/register-tenant', method: RequestMethod.POST },
         { path: 'events', method: RequestMethod.GET },
         { path: 'events/:id', method: RequestMethod.GET },
-        { path: 'ticket-tiers/event/(.*)', method: RequestMethod.GET }
+        { path: 'ticket-tiers/event/(.*)', method: RequestMethod.GET },
+        { path: 'orders', method: RequestMethod.POST },
+        { path: 'orders/:id/cancel', method: RequestMethod.POST }
       )
       .forRoutes('*');
   }
