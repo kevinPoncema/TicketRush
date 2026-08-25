@@ -26,6 +26,9 @@ function logout() {
         <router-link to="/b2b" class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors" exact-active-class="bg-gray-800 text-white font-medium">
           Resumen
         </router-link>
+        <router-link to="/b2b/events" class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors" active-class="bg-gray-800 text-white font-medium">
+          Gestionar Eventos
+        </router-link>
         <router-link to="/b2b/staff" class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors" active-class="bg-gray-800 text-white font-medium">
           Gestión de Staff
         </router-link>
@@ -42,12 +45,11 @@ function logout() {
 
     <!-- Main Content -->
     <main class="flex-1 p-8 overflow-y-auto">
-      <!-- Si estamos en /b2b, mostramos contenido por defecto, sino renderizamos las vistas hijas -->
       <router-view v-if="$route.path !== '/b2b'" />
       
       <div v-else>
         <h2 class="text-3xl font-bold mb-6">Bienvenido a VANTAGE</h2>
-        <p class="text-gray-400">Selecciona "Gestión de Staff" en el menú izquierdo para administrar a los porteros y empleados de tu organización.</p>
+        <p class="text-gray-400">Selecciona "Gestión de Staff" o "Gestionar Eventos" en el menú izquierdo para administrar tu organización.</p>
       </div>
     </main>
   </div>
