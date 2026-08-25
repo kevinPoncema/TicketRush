@@ -8,6 +8,7 @@ import { OrderService } from '../src/services/order.service';
 import { TenantRepository } from '../src/Repositories/tenant.repository';
 import { EventRepository } from '../src/Repositories/event.repository';
 import { TicketTierRepository } from '../src/Repositories/ticket-tier.repository';
+import { ReserveProcessor } from '../src/jobs/reserve.processor';
 
 describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
   let app: INestApplication;
@@ -17,12 +18,15 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
   let testTierId: string;
 
   beforeAll(async () => {
-    // 1. Configuramos el módulo interceptando BullMQ para no depender de Redis
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
+      // 1. Mockeamos la cola para que OrderService no intente enviar trabajos a Redis
       .overrideProvider(getQueueToken('reserve-queue'))
       .useValue({ add: jest.fn() })
+      // 2. Mockeamos el Processor para que NO intente conectarse como Worker a Redis
+      .overrideProvider(ReserveProcessor)
+      .useValue({})
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -33,8 +37,6 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
     dataSource = app.get<DataSource>(DataSource);
     const tenantRepo = app.get<TenantRepository>(TenantRepository);
     const eventRepo = app.get<EventRepository>(EventRepository);
-
-    // 2. Limpiar base de datos (SÓLO DE TEST) para tener un entorno predecible
 
     // 3. Preparar los datos de prueba
     const tenant = await tenantRepo.create({ name: 'Test Tenant' });
@@ -49,11 +51,9 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
   });
 
   it('debería evitar la sobreventa cuando 5 usuarios compran el último boleto a la vez', async () => {
-    // Verificamos el setup: Solo hay 1 entrada
     const initialTier = await tierRepo.findById(testTierId);
     expect(initialTier.availableStock).toBe(1);
 
-    // Disparamos 5 peticiones concurrentes simultáneas
     const attempts = Array.from({ length: 5 }).map((_, i) =>
       orderService.createOrder(
         {
@@ -65,18 +65,14 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
       ).catch((e) => e)
     );
 
-    // Esperamos a que la base de datos procese el "embudo" de transacciones
     const results = await Promise.all(attempts);
 
-    // Filtramos los éxitos (tienen id) y los fallos (arrojan error de Sold Out)
     const successOrders = results.filter((r) => !(r instanceof Error) && r.id);
     const failedOrders = results.filter((r) => r instanceof Error);
 
-    // Aserciones de Arquitecto
-    expect(successOrders).toHaveLength(1); // Exactamente 1 transacción triunfa
-    expect(failedOrders).toHaveLength(4);  // Las otras 4 fallan y se revierten
+    expect(successOrders).toHaveLength(1);
+    expect(failedOrders).toHaveLength(4);
 
-    // Asegurarse de que el stock es 0 matemáticamente, ni negativo ni flotante.
     const finalTier = await tierRepo.findById(testTierId);
     expect(finalTier.availableStock).toBe(0);
   });
