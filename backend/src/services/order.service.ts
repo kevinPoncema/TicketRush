@@ -32,7 +32,7 @@ export class OrderService {
     try {
       const client = await this.resolveClient(data.clientEmail, data.clientName, queryRunner.manager);
 
-      const { totalAmount, ticketsToCreate } = await this.processTiersConcurrently(data.tiers, queryRunner.manager);
+      const { totalAmount, ticketsToCreate } = await this.processTiersSequentially(data.tiers, queryRunner.manager);
 
       const order = await this.saveOrderAndTickets(client.id, totalAmount, ticketsToCreate, queryRunner.manager);
 
@@ -53,7 +53,7 @@ export class OrderService {
     return this.clientRepository.findOrCreate(email, name, manager);
   }
 
-  private async processTiersConcurrently(tiers: OrderTierItemDto[], manager: EntityManager) {
+  private async processTiersSequentially(tiers: OrderTierItemDto[], manager: EntityManager) {
     const tierPromises = tiers.map(item => this.processSingleTier(item, manager));
     const results = await Promise.all(tierPromises);
 
