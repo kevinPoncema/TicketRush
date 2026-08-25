@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
 import { Order, OrderStatus } from '../models/order.entity';
+import { Ticket } from '../models/ticket.entity';
 
 @Injectable()
 export class OrderRepository {
@@ -23,12 +24,17 @@ export class OrderRepository {
 
   async findByIdAndLock(id: string, manager: EntityManager): Promise<Order> {
     const repo = this.getRepo(manager);
+    // 1. Fetch and lock the order (without relations to avoid Postgres LEFT JOIN + FOR UPDATE error)
     const order = await repo.findOne({ 
       where: { id }, 
-      relations: { tickets: true },
       lock: { mode: 'pessimistic_write' } 
     });
     if (!order) throw new NotFoundException('Order not found');
+    
+    // 2. Fetch the tickets separately
+    const tickets = await manager.find(Ticket, { where: { orderId: id } });
+    order.tickets = tickets as any;
+    
     return order;
   }
 
