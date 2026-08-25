@@ -35,11 +35,9 @@ async function createMember() {
 }
 
 function deleteMember(id: string) {
-  if(confirm('¿Seguro que deseas eliminar este miembro?')) {
-    // MOCK DELETE (Backend will implement DELETE /auth/member/:id)
-    members.value = members.value.filter(m => m.id !== id)
-    localStorage.setItem('mock_users', JSON.stringify(members.value))
-  }
+  // El backend no implementa DELETE /auth/member/:id todavía.
+  // Ver docs/pendiente.md para detalles.
+  alert('La eliminación de miembros estará disponible próximamente.')
 }
 
 onMounted(() => {
@@ -63,6 +61,11 @@ onMounted(() => {
     <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden">
       <div v-if="loading" class="p-8 text-center text-gray-500 animate-pulse">Cargando usuarios...</div>
       
+      <div v-else-if="members.length === 0" class="p-8 text-center">
+        <p class="text-gray-500 mb-2">No hay miembros registrados en este Tenant.</p>
+        <p class="text-xs text-gray-600">El listado de miembros estará disponible cuando el backend implemente el endpoint <code class="text-violet-400">GET /auth/members</code>.</p>
+      </div>
+
       <table v-else class="w-full text-left">
         <thead class="bg-gray-800/50 text-xs uppercase text-gray-400">
           <tr>
@@ -86,14 +89,11 @@ onMounted(() => {
               <button @click="deleteMember(member.id)" class="text-sm text-red-400 hover:text-red-300 font-medium">Eliminar</button>
             </td>
           </tr>
-          <tr v-if="members.length === 0">
-            <td colspan="3" class="px-6 py-8 text-center text-gray-500">No hay miembros registrados en este Tenant.</td>
-          </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Modal Mock para Crear Miembro -->
+    <!-- Modal para Crear Miembro -->
     <div v-if="showModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-[#1a1a1a] w-full max-w-md rounded-2xl border border-gray-800 p-6">
         <h3 class="text-xl font-bold mb-4">Añadir Miembro del Staff</h3>

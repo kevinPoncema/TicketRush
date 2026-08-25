@@ -35,8 +35,19 @@ function removeTier(index: number) {
 async function loadEvent(id: string) {
   try {
     const data: any = await EventService.getEvent(id)
-    form.value = { id: data.id, name: data.name, date: data.date, location: data.location }
-    tiers.value = data.tiers
+    form.value = { id: data.id, name: data.name, date: data.date?.slice(0, 16) ?? '', location: data.location }
+    // La API real usa ticketTiers
+    const apiTiers = data.ticketTiers || data.tiers || []
+    tiers.value = apiTiers.map((t: any) => ({
+      id: t.id || '',
+      name: t.name,
+      price: Number(t.price),
+      capacity: t.availableStock ?? t.capacity,
+      description: t.description || ''
+    }))
+    if (tiers.value.length === 0) {
+      tiers.value = [{ id: '', name: 'General', price: 0, capacity: 100, description: '' }]
+    }
   } catch (e) {
     alert('No se pudo cargar el evento')
     router.push('/b2b')
@@ -48,13 +59,12 @@ async function save() {
     alert('Debes añadir al menos una categoría de tickets')
     return
   }
-  
   loading.value = true
   try {
     await EventService.saveEvent(form.value, tiers.value)
     router.push('/b2b')
-  } catch (e) {
-    alert('Error al guardar evento')
+  } catch (e: any) {
+    alert(e.message || 'Error al guardar evento')
   } finally {
     loading.value = false
   }
@@ -81,7 +91,6 @@ onMounted(() => {
     <form @submit.prevent="save" class="space-y-8">
       <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 p-6 space-y-6">
         <h3 class="text-xl font-bold text-violet-400 border-b border-gray-800 pb-2">1. Detalles Principales</h3>
-        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <BaseInput label="Nombre del Evento" v-model="form.name" required placeholder="Ej. Neon Nights Festival" />
           <BaseInput label="Fecha y Hora" type="datetime-local" v-model="form.date" required />

@@ -1,55 +1,71 @@
+import { api } from './api'
+import { useAuthStore } from '../stores/auth.store'
+
 export const EventService = {
   async listEvents() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const eventsStr = localStorage.getItem('mock_events')
-        const parsed = eventsStr ? JSON.parse(eventsStr) : [];
-        const cleanEvents = parsed.filter((e: any) => e && e.id && e.id.trim() !== '');
-        if (parsed.length !== cleanEvents.length) localStorage.setItem('mock_events', JSON.stringify(cleanEvents));
-        resolve(cleanEvents);
-      }, 400)
-    })
+    const authStore = useAuthStore()
+    const tenantId = authStore.user?.tenantId
+    if (!tenantId) throw new Error('No autenticado')
+    return api.get<any[]>(`/events?tenantId=${tenantId}`)
   },
 
   async saveEvent(eventData: any, tiers: any[]) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const eventsStr = localStorage.getItem('mock_events')
-        const events = eventsStr ? JSON.parse(eventsStr) : []
-        
-        const isUpdate = !!eventData.id
-        const newEvent = {
-          ...eventData,
-          id: isUpdate ? eventData.id : `evt-${Date.now()}`,
-          tiers: tiers.map(t => ({ ...t, id: t.id || `tier-${Math.random().toString(36).substr(2, 6)}` }))
-        }
-
-        if (isUpdate) {
-          const idx = events.findIndex((e: any) => e.id === newEvent.id)
-          if (idx !== -1) events[idx] = newEvent
+    if (eventData.id) {
+      // Actualizar evento existente
+      await api.put(`/events/${eventData.id}`, {
+        name: eventData.name,
+        date: eventData.date,
+        location: eventData.location,
+      })
+      // Actualizar tiers existentes, crear los nuevos
+      for (const tier of tiers) {
+        if (tier.id) {
+          await api.put(`/ticket-tiers/${tier.id}`, {
+            name: tier.name,
+            price: Number(tier.price),
+            capacity: Number(tier.capacity),
+            availableStock: Number(tier.capacity),
+            description: tier.description || '',
+          })
         } else {
-          events.push(newEvent)
+          await api.post('/ticket-tiers', {
+            eventId: eventData.id,
+            name: tier.name,
+            price: Number(tier.price),
+            capacity: Number(tier.capacity),
+            availableStock: Number(tier.capacity),
+            description: tier.description || '',
+          })
         }
-        
-        localStorage.setItem('mock_events', JSON.stringify(events))
-        resolve(newEvent)
-      }, 600)
-    })
+      }
+      return api.get(`/events/${eventData.id}`)
+    } else {
+      // Crear evento nuevo
+      const createdEvent: any = await api.post<any>('/events', {
+        name: eventData.name,
+        date: eventData.date,
+        location: eventData.location,
+      })
+      // Crear tiers
+      for (const tier of tiers) {
+        await api.post('/ticket-tiers', {
+          eventId: createdEvent.id,
+          name: tier.name,
+          price: Number(tier.price),
+          capacity: Number(tier.capacity),
+          availableStock: Number(tier.capacity),
+          description: tier.description || '',
+        })
+      }
+      return createdEvent
+    }
   },
 
   async getEvent(id: string) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        try {
-          const eventsStr = localStorage.getItem('mock_events');
-          const events = eventsStr ? JSON.parse(eventsStr) : [];
-          const event = events.find((e: any) => String(e.id) === String(id));
-          if (event) resolve(event);
-          else reject(new Error('Event not found'));
-        } catch (e) {
-          reject(e);
-        }
-      }, 300);
-    });
-  }
+    return api.get<any>(`/events/${id}`)
+  },
+
+  async deleteEvent(id: string) {
+    return api.delete(`/events/${id}`)
+  },
 }

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { MockApiService } from '../../services/api.mock'
+
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const route = useRoute()
 const router = useRouter()
@@ -9,13 +10,13 @@ const router = useRouter()
 const order = ref<any>(null)
 const loading = ref(true)
 
-// Lógica de Carrusel
 const currentTicketIndex = ref(0)
 const flattenedTickets = computed(() => {
-  if (!order.value) return []
+  if (!order.value?.tickets) return []
   const list: any[] = []
   order.value.tickets.forEach((t: any) => {
-    for (let i = 0; i < t.quantity; i++) {
+    const qty = t.quantity || 1
+    for (let i = 0; i < qty; i++) {
       list.push({ ...t, ticketNumber: i + 1 })
     }
   })
@@ -24,14 +25,16 @@ const flattenedTickets = computed(() => {
 
 async function fetchOrder() {
   const orderId = route.query.orderId as string
-  if (!orderId) {
-    router.push('/')
-    return
-  }
-  
+  if (!orderId) { router.push('/'); return }
   try {
-    const data = await MockApiService.recoverOrder(orderId)
-    order.value = data
+    // Intentamos recuperar desde localStorage primero (por si acabamos de pagar)
+    const cached = localStorage.getItem(`order_success_${orderId}`)
+    if (cached) {
+      order.value = JSON.parse(cached)
+      return
+    }
+    // Si no hay caché, redirigimos al flujo de recuperación
+    router.push('/recover')
   } catch (e) {
     alert('Orden no encontrada')
     router.push('/')
@@ -43,19 +46,18 @@ async function fetchOrder() {
 function prevTicket() {
   if (currentTicketIndex.value > 0) currentTicketIndex.value--
 }
-
 function nextTicket() {
   if (currentTicketIndex.value < flattenedTickets.value.length - 1) currentTicketIndex.value++
 }
 
 function downloadPDF() {
-  // En producción, esto haría: window.location.href = `http://localhost:3000/orders/${order.value.orderId}/pdf`
-  alert(`Simulando descarga del PDF para la orden: ${order.value.orderId}`)
+  if (!order.value) return
+  const email = encodeURIComponent(order.value.clientEmail || order.value.email || '')
+  const pin = encodeURIComponent(order.value.accessPin)
+  window.open(`${BASE_URL}/orders/${order.value.orderId}/pdf?email=${email}&accessPin=${pin}`, '_blank')
 }
 
-onMounted(() => {
-  fetchOrder()
-})
+onMounted(() => { fetchOrder() })
 </script>
 
 <template>
@@ -65,10 +67,9 @@ onMounted(() => {
       <div class="animate-pulse text-violet-400 font-bold text-xl">Generando Boletos...</div>
     </div>
 
-    <template v-else>
-      <!-- Panel Izquierdo: Información y Seguridad -->
+    <template v-else-if="order">
+      <!-- Panel Izquierdo -->
       <div class="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center border-r border-gray-800">
-        
         <div class="bg-green-900/20 text-green-400 border border-green-500/30 px-4 py-2 rounded-full inline-flex items-center gap-2 mb-8 self-start text-sm font-bold">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
           Pago Exitoso
@@ -82,7 +83,7 @@ onMounted(() => {
           Para garantizar la fricción cero, <strong>no te hemos enviado ningún correo</strong>. Toda la entrega ocurre ahora mismo en esta pantalla.
         </p>
 
-        <!-- PIN de Seguridad (El momento crítico) -->
+        <!-- PIN de Seguridad -->
         <div class="bg-[#1a1a1a] p-6 rounded-2xl border-2 border-violet-600/50 shadow-[0_0_30px_rgba(139,92,246,0.1)] mb-8">
           <p class="text-sm text-violet-300 font-semibold uppercase tracking-wider mb-2">Tu PIN de Recuperación (Guárdalo)</p>
           <div class="flex items-center gap-4">
@@ -91,7 +92,7 @@ onMounted(() => {
             </div>
           </div>
           <p class="text-xs text-gray-500 mt-4">
-            Si cierras esta pestaña, necesitarás tu correo ({{ order.email }}) y este PIN de 6 dígitos para volver a acceder a tus boletos desde cualquier dispositivo.
+            Si cierras esta pestaña, necesitarás tu correo ({{ order.clientEmail || order.email }}) y este PIN para recuperar tus boletos.
           </p>
         </div>
 
@@ -99,70 +100,41 @@ onMounted(() => {
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           Descargar PDF (Todos los Boletos)
         </button>
-
       </div>
 
-      <!-- Panel Derecho: Carrusel de Tickets Digitales -->
+      <!-- Panel Derecho: Carrusel -->
       <div class="w-full md:w-1/2 p-8 md:p-16 flex flex-col items-center justify-center bg-black relative">
-        
-        <!-- Carrusel Header -->
         <div class="absolute top-8 right-8 bg-gray-900 px-4 py-2 rounded-full text-sm font-bold text-gray-400 border border-gray-800">
           Boleto {{ currentTicketIndex + 1 }} de {{ flattenedTickets.length }}
         </div>
 
-        <!-- Ticket Card -->
         <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transform transition-all duration-300">
-          <!-- Ticket Header -->
           <div class="bg-violet-600 p-6 text-center text-white">
-            <h2 class="text-xl font-black uppercase tracking-wider">{{ flattenedTickets[currentTicketIndex].name }}</h2>
-            <p class="text-violet-200 text-xs mt-1 font-mono opacity-80">Boleto #{{ flattenedTickets[currentTicketIndex].ticketNumber }}</p>
+            <h2 class="text-xl font-black uppercase tracking-wider">{{ flattenedTickets[currentTicketIndex]?.name }}</h2>
+            <p class="text-violet-200 text-xs mt-1 font-mono opacity-80">Boleto #{{ flattenedTickets[currentTicketIndex]?.ticketNumber }}</p>
           </div>
-          
-          <!-- QR Code Area -->
           <div class="p-8 flex flex-col items-center bg-gray-50">
             <div class="w-48 h-48 bg-white border-4 border-white shadow-sm rounded-lg overflow-hidden flex items-center justify-center mb-6">
-              <!-- Using a public API to generate a real looking QR code for the mockup -->
-              <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TICKET-${order.orderId}-${currentTicketIndex}`" alt="QR Code" class="w-full h-full object-contain" />
+              <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${order.orderId}-${currentTicketIndex}`" alt="QR Code" class="w-full h-full object-contain" />
             </div>
-            
             <div class="w-full border-t-2 border-dashed border-gray-300 my-2"></div>
-            
-            <p class="text-xs text-gray-400 font-mono text-center mt-4 uppercase">
-              ID: {{ order.orderId }}-{{ currentTicketIndex }}
-            </p>
+            <p class="text-xs text-gray-400 font-mono text-center mt-4 uppercase">ID: {{ order.orderId }}-{{ currentTicketIndex }}</p>
             <p class="text-[10px] text-gray-400 text-center mt-1 uppercase font-bold">VANTAGE Ticketing</p>
           </div>
         </div>
 
-        <!-- Controles del Carrusel -->
         <div class="flex items-center gap-6 mt-10">
-          <button 
-            @click="prevTicket" 
-            :disabled="currentTicketIndex === 0"
-            class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-white hover:bg-violet-600 disabled:opacity-30 disabled:hover:bg-gray-800 transition-colors"
-          >
+          <button @click="prevTicket" :disabled="currentTicketIndex === 0" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-white hover:bg-violet-600 disabled:opacity-30 disabled:hover:bg-gray-800 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
           </button>
-          
           <div class="flex gap-2">
-            <div 
-              v-for="(_, index) in flattenedTickets" 
-              :key="index"
-              :class="['w-2 h-2 rounded-full transition-all duration-300', currentTicketIndex === index ? 'bg-violet-500 w-6' : 'bg-gray-700']"
-            ></div>
+            <div v-for="(_, index) in flattenedTickets" :key="index" :class="['w-2 h-2 rounded-full transition-all duration-300', currentTicketIndex === index ? 'bg-violet-500 w-6' : 'bg-gray-700']"></div>
           </div>
-
-          <button 
-            @click="nextTicket" 
-            :disabled="currentTicketIndex === flattenedTickets.length - 1"
-            class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-white hover:bg-violet-600 disabled:opacity-30 disabled:hover:bg-gray-800 transition-colors"
-          >
+          <button @click="nextTicket" :disabled="currentTicketIndex === flattenedTickets.length - 1" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-white hover:bg-violet-600 disabled:opacity-30 disabled:hover:bg-gray-800 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </button>
         </div>
-
       </div>
-
     </template>
   </div>
 </template>

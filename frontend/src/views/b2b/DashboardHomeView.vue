@@ -7,13 +7,6 @@ const router = useRouter()
 const events = ref<any[]>([])
 const loading = ref(true)
 
-// Métricas Falsas para el Dashboard
-const metrics = ref({
-  totalRevenue: '$12,450.00',
-  ticketsSold: '342',
-  conversionRate: '4.2%'
-})
-
 async function fetchEvents() {
   loading.value = true
   try {
@@ -48,25 +41,6 @@ onMounted(() => {
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         Crear Evento
       </button>
-    </div>
-
-    <!-- Top Metrics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-      <div class="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-gray-400 text-sm font-medium mb-1">Ingresos Totales (USD)</h3>
-        <p class="text-3xl font-bold text-white">{{ metrics.totalRevenue }}</p>
-        <span class="text-xs text-green-400 font-medium mt-2 block">+14% vs mes anterior</span>
-      </div>
-      <div class="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-gray-400 text-sm font-medium mb-1">Tickets Vendidos</h3>
-        <p class="text-3xl font-bold text-white">{{ metrics.ticketsSold }}</p>
-        <span class="text-xs text-green-400 font-medium mt-2 block">+5% vs mes anterior</span>
-      </div>
-      <div class="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-gray-400 text-sm font-medium mb-1">Tasa de Conversión</h3>
-        <p class="text-3xl font-bold text-white">{{ metrics.conversionRate }}</p>
-        <span class="text-xs text-red-400 font-medium mt-2 block">-1.2% vs mes anterior</span>
-      </div>
     </div>
 
     <!-- Event List Section -->

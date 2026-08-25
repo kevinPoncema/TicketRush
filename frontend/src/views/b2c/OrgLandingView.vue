@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { MockApiService } from '../../services/api.mock'
+
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,6 +11,7 @@ const tenantId = route.params.tenantId as string
 const events = ref<any[]>([])
 const loading = ref(true)
 const errorMsg = ref('')
+const orgName = ref(tenantId.replace(/-/g, ' ').toUpperCase())
 
 onMounted(async () => {
   if (!tenantId) {
@@ -18,7 +20,9 @@ onMounted(async () => {
     return
   }
   try {
-    events.value = (await MockApiService.getUpcomingEventsByTenant(tenantId)) as any[]
+    const response = await fetch(`${BASE_URL}/events/public/tenant/${tenantId}`)
+    if (!response.ok) throw new Error('Error al cargar eventos')
+    events.value = await response.json()
   } catch (e) {
     errorMsg.value = 'No se pudieron cargar los eventos.'
   } finally {
@@ -43,17 +47,11 @@ function lowestPrice(tiers: any[]) {
 
 function scarcityLabel(tiers: any[]) {
   if (!tiers?.length) return null
-  const minCapacity = Math.min(...tiers.map(t => Number(t.capacity)))
-  if (minCapacity <= 20) return { label: '¡Casi Agotado!', color: 'text-red-400 animate-pulse', dot: 'bg-red-500' }
-  if (minCapacity <= 50) return { label: 'Últimos Cupos', color: 'text-orange-400', dot: 'bg-orange-500' }
+  const minStock = Math.min(...tiers.map(t => Number(t.availableStock ?? t.capacity)))
+  if (minStock <= 20) return { label: '¡Casi Agotado!', color: 'text-red-400 animate-pulse', dot: 'bg-red-500' }
+  if (minStock <= 50) return { label: 'Últimos Cupos', color: 'text-orange-400', dot: 'bg-orange-500' }
   return { label: 'Disponible', color: 'text-green-400', dot: 'bg-green-500' }
 }
-
-// Nombre de la organización derivado (en producción vendría del backend)
-const orgName = computed(() => {
-  if (tenantId.startsWith('mock')) return 'VANTAGE Productions'
-  return tenantId.replace(/-/g, ' ').toUpperCase()
-})
 </script>
 
 <template>
@@ -69,14 +67,11 @@ const orgName = computed(() => {
 
     <!-- Hero de la Organización -->
     <div class="relative h-52 bg-black overflow-hidden flex items-center justify-center">
-      <!-- Fondo genérico con gradiente de marca -->
       <div class="absolute inset-0 bg-gradient-to-br from-violet-900/40 via-black to-black"></div>
       <div class="absolute inset-0 opacity-20"
         style="background-image: radial-gradient(circle at 20% 80%, rgba(139,92,246,0.4) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(167,139,250,0.2) 0%, transparent 50%)">
       </div>
-
       <div class="relative z-10 text-center px-4">
-        <!-- Logo genérico (inicial de la org) -->
         <div class="w-16 h-16 rounded-2xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center mx-auto mb-4 text-2xl font-black text-violet-400 tracking-tight">
           {{ orgName.charAt(0) }}
         </div>
@@ -101,7 +96,7 @@ const orgName = computed(() => {
 
       <!-- Sin eventos -->
       <div v-else-if="events.length === 0" class="text-center py-32">
-        <div class="text-6xl mb-6">🎟️</div>
+        <div class="text-6xl mb-6">🎫</div>
         <h2 class="text-2xl font-bold text-white mb-3">No hay eventos próximos</h2>
         <p class="text-gray-500">Esta organización no tiene eventos programados por el momento.</p>
       </div>
@@ -122,7 +117,7 @@ const orgName = computed(() => {
             @click="router.push(`/e/${event.id}`)"
             class="group bg-[#141414] border border-gray-800 hover:border-violet-500/60 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:bg-[#1a1a1a] hover:shadow-[0_0_30px_rgba(139,92,246,0.1)] flex flex-col"
           >
-            <!-- Tapa del evento (imagen genérica + overlay) -->
+            <!-- Tapa del evento -->
             <div class="relative h-44 bg-black overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
@@ -142,11 +137,11 @@ const orgName = computed(() => {
               </div>
 
               <!-- Scarcity badge -->
-              <div v-if="scarcityLabel(event.tiers)" class="absolute top-3 right-3">
+              <div v-if="scarcityLabel(event.ticketTiers)" class="absolute top-3 right-3">
                 <div class="flex items-center gap-1.5 bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                  <div class="w-1.5 h-1.5 rounded-full" :class="scarcityLabel(event.tiers)?.dot"></div>
-                  <span class="text-xs font-bold" :class="scarcityLabel(event.tiers)?.color">
-                    {{ scarcityLabel(event.tiers)?.label }}
+                  <div class="w-1.5 h-1.5 rounded-full" :class="scarcityLabel(event.ticketTiers)?.dot"></div>
+                  <span class="text-xs font-bold" :class="scarcityLabel(event.ticketTiers)?.color">
+                    {{ scarcityLabel(event.ticketTiers)?.label }}
                   </span>
                 </div>
               </div>
@@ -174,7 +169,7 @@ const orgName = computed(() => {
                 <div>
                   <span class="text-xs text-gray-500 uppercase tracking-wider">Desde</span>
                   <div class="text-xl font-black text-white">
-                    ${{ lowestPrice(event.tiers)?.toFixed(2) }}
+                    ${{ lowestPrice(event.ticketTiers)?.toFixed(2) }}
                   </div>
                 </div>
                 <div class="bg-violet-600 group-hover:bg-violet-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
@@ -186,7 +181,6 @@ const orgName = computed(() => {
           </div>
         </div>
       </div>
-
     </main>
 
     <!-- Footer mínimo -->

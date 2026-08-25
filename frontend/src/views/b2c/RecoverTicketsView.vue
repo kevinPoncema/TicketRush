@@ -3,10 +3,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseInput from '../../components/ui/BaseInput.vue'
 import BaseButton from '../../components/ui/BaseButton.vue'
-import { MockApiService } from '../../services/api.mock'
+
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const router = useRouter()
 const loading = ref(false)
+const errorMsg = ref('')
 
 const form = ref({
   email: '',
@@ -15,18 +17,24 @@ const form = ref({
 
 async function attemptRecovery() {
   if (!form.value.email || !form.value.pin) return
-  
   loading.value = true
+  errorMsg.value = ''
   try {
-    const recovered: any = await MockApiService.recoverByPin(form.value.email, form.value.pin)
-    if (recovered && recovered.length > 0) {
-      // Como el servicio mock ya lo guardó en el localStorage, redirigimos a MyTickets
-      router.push('/my-tickets')
-    } else {
-      alert('No se encontraron boletos con estos datos.')
+    const response = await fetch(`${BASE_URL}/orders/recover`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: form.value.email, accessPin: form.value.pin })
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.message || 'No se encontraron boletos con estos datos.')
     }
-  } catch (e) {
-    alert('Error recuperando tus boletos.')
+    const order = await response.json()
+    // Guardar en localStorage para que SuccessView lo pueda mostrar
+    localStorage.setItem(`order_success_${order.orderId}`, JSON.stringify(order))
+    router.push(`/success?orderId=${order.orderId}`)
+  } catch (e: any) {
+    errorMsg.value = e.message || 'Error recuperando tus boletos.'
   } finally {
     loading.value = false
   }
@@ -35,7 +43,6 @@ async function attemptRecovery() {
 
 <template>
   <div class="min-h-screen bg-[#131313] flex items-center justify-center p-6 relative overflow-hidden">
-    <!-- Glow effect -->
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-violet-600/20 rounded-full blur-[100px] pointer-events-none"></div>
     
     <div class="max-w-md w-full bg-[#1a1a1a] rounded-3xl p-8 border border-gray-800 shadow-2xl relative z-10">
@@ -47,15 +54,10 @@ async function attemptRecovery() {
         <p class="text-gray-400 text-sm">Ingresa el correo y PIN de 6 dígitos que se mostraron tras tu compra.</p>
       </div>
 
+      <div v-if="errorMsg" class="bg-red-900/20 border border-red-500/30 p-3 rounded-lg text-red-300 text-sm mb-4">{{ errorMsg }}</div>
+
       <form @submit.prevent="attemptRecovery" class="space-y-6">
-        <BaseInput 
-          label="Correo Electrónico" 
-          type="email" 
-          v-model="form.email" 
-          required 
-          placeholder="tu@correo.com" 
-        />
-        
+        <BaseInput label="Correo Electrónico" type="email" v-model="form.email" required placeholder="tu@correo.com" />
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">PIN de Seguridad (6 dígitos)</label>
           <input 
@@ -67,7 +69,6 @@ async function attemptRecovery() {
             placeholder="••••••"
           />
         </div>
-
         <BaseButton type="submit" variant="primary" :loading="loading" class="w-full py-4 text-lg mt-4">
           Buscar Boletos
         </BaseButton>
