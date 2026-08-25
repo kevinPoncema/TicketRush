@@ -23,6 +23,8 @@ import { UserRepository } from './Repositories/user.repository';
 import { TenantConfigRepository } from './Repositories/tenant-config.repository';
 import { TicketTierRepository } from './Repositories/ticket-tier.repository';
 import { OrderRepository } from './Repositories/order.repository';
+import { TicketRepository } from './Repositories/ticket.repository';
+import { ClientRepository } from './Repositories/client.repository';
 
 import { TenantService } from './services/tenant.service';
 import { EventService } from './services/event.service';
@@ -86,6 +88,8 @@ import { RolesGuard } from './guards/roles.guard';
     TenantConfigRepository,
     TicketTierRepository,
     OrderRepository,
+    TicketRepository,
+    ClientRepository,
     TenantService,
     EventService,
     AuthService,
