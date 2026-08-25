@@ -22,6 +22,7 @@ export class OrderService {
     private readonly clientRepository: ClientRepository,
     private readonly ticketRepository: TicketRepository,
     @InjectQueue('reserve-queue') private readonly redisQueue: Queue,
+    @InjectQueue('webhook-queue') private readonly webhookQueue: Queue,
   ) { }
 
   async createOrder(data: CreateOrderDto, idempotencyKey: string) {
@@ -154,6 +155,10 @@ export class OrderService {
         await this.ticketRepository.saveBulk(order.tickets, queryRunner.manager);
 
         await queryRunner.commitTransaction();
+        
+        // Enviar evento asíncrono para notificar por Webhook
+        await this.webhookQueue.add('send-webhook', { orderId: order.id });
+
         return { success: true, orderStatus: OrderStatus.PAID };
       } else {
         order.status = OrderStatus.FAILED;

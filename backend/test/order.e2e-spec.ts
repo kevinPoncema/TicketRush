@@ -1,14 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { getQueueToken } from '@nestjs/bullmq';
 import { DataSource } from 'typeorm';
-import { AppModule } from '../src/app.module';
 
+// ¡Mockeamos toda la librería BullMQ antes de importar los módulos!
+// Esto evita CUALQUIER intento de conexión a Redis (Worker o Queue)
+jest.mock('bullmq', () => ({
+  Queue: class QueueMock {
+    constructor() {}
+    add() { return Promise.resolve(); }
+    on() {}
+    close() { return Promise.resolve(); }
+    disconnect() { return Promise.resolve(); }
+  },
+  Worker: class WorkerMock {
+    constructor() {}
+    on() {}
+    close() { return Promise.resolve(); }
+    disconnect() { return Promise.resolve(); }
+  },
+}));
+
+import { AppModule } from '../src/app.module';
 import { OrderService } from '../src/services/order.service';
 import { TenantRepository } from '../src/Repositories/tenant.repository';
 import { EventRepository } from '../src/Repositories/event.repository';
 import { TicketTierRepository } from '../src/Repositories/ticket-tier.repository';
-import { ReserveProcessor } from '../src/jobs/reserve.processor';
 
 describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
   let app: INestApplication;
@@ -20,14 +36,7 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      // 1. Mockeamos la cola para que OrderService no intente enviar trabajos a Redis
-      .overrideProvider(getQueueToken('reserve-queue'))
-      .useValue({ add: jest.fn() })
-      // 2. Mockeamos el Processor para que NO intente conectarse como Worker a Redis
-      .overrideProvider(ReserveProcessor)
-      .useValue({})
-      .compile();
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -38,7 +47,7 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
     const tenantRepo = app.get<TenantRepository>(TenantRepository);
     const eventRepo = app.get<EventRepository>(EventRepository);
 
-    // 3. Preparar los datos de prueba
+    // Setup de datos
     const tenant = await tenantRepo.create({ name: 'Test Tenant' });
     const event = await eventRepo.create({ tenantId: tenant.id, name: 'Concierto Test', date: new Date(), location: 'Test' });
     const tier = await tierRepo.create({ eventId: event.id, name: 'VIP', price: 100, capacity: 10, availableStock: 1 });

@@ -49,3 +49,20 @@ export class OrderRepository {
     return this.findById(id, manager);
   }
 }
+
+  async findByIdWithFullRelations(id: string, manager?: EntityManager): Promise<Order> {
+    const repo = this.getRepo(manager);
+    const order = await repo.findOne({ 
+      where: { id }, 
+      relations: { 
+        client: true,
+        tickets: {
+          ticketTier: {
+            event: true
+          }
+        } 
+      } 
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    return order;
+  }

@@ -61,6 +61,9 @@ import { RolesGuard } from './guards/roles.guard';
       },
     }),
     BullModule.registerQueue({
+      name: 'webhook-queue',
+    }),
+    BullModule.registerQueue({
       name: 'reserve-queue',
     }),
     JwtModule.register({
