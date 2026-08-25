@@ -20,16 +20,19 @@ import { TenantRepository } from './Repositories/tenant.repository';
 import { EventRepository } from './Repositories/event.repository';
 import { UserRepository } from './Repositories/user.repository';
 import { TenantConfigRepository } from './Repositories/tenant-config.repository';
+import { TicketTierRepository } from './Repositories/ticket-tier.repository';
 
 import { TenantService } from './services/tenant.service';
 import { EventService } from './services/event.service';
 import { AuthService } from './services/auth.service';
 import { TenantConfigService } from './services/tenant-config.service';
+import { TicketTierService } from './services/ticket-tier.service';
 
 import { TenantController } from './controllers/tenant.controller';
 import { EventController } from './controllers/event.controller';
 import { AuthController } from './controllers/auth.controller';
 import { TenantConfigController } from './controllers/tenant-config.controller';
+import { TicketTierController } from './controllers/ticket-tier.controller';
 
 import { AuthMiddleware } from './middlewares/auth.middleware';
 
@@ -57,17 +60,26 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
     }),
     JobsModule,
   ],
-  controllers: [AppController, AuthController, TenantController, EventController, TenantConfigController],
+  controllers: [
+    AppController, 
+    AuthController, 
+    TenantController, 
+    EventController, 
+    TenantConfigController,
+    TicketTierController
+  ],
   providers: [
     AppService,
     TenantRepository,
     EventRepository,
     UserRepository,
     TenantConfigRepository,
+    TicketTierRepository,
     TenantService,
     EventService,
     AuthService,
-    TenantConfigService
+    TenantConfigService,
+    TicketTierService
   ],
 })
 export class AppModule implements NestModule {
@@ -78,7 +90,8 @@ export class AppModule implements NestModule {
         { path: 'auth/login', method: RequestMethod.POST },
         { path: 'auth/register-tenant', method: RequestMethod.POST },
         { path: 'events', method: RequestMethod.GET },
-        { path: 'events/:id', method: RequestMethod.GET }
+        { path: 'events/:id', method: RequestMethod.GET },
+        { path: 'ticket-tiers/event/(.*)', method: RequestMethod.GET }
       )
       .forRoutes('*');
   }
