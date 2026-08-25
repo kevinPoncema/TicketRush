@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseInput from '../../components/ui/BaseInput.vue'
 import BaseButton from '../../components/ui/BaseButton.vue'
+import { getStripe } from '../../services/stripe.service'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -10,6 +11,12 @@ const router = useRouter()
 const cart = ref<any>(null)
 const loading = ref(false)
 const errorMsg = ref('')
+
+const step = ref(1)
+const orderId = ref('')
+const clientSecret = ref('')
+let elements: any = null
+let stripe: any = null
 
 const timeLeft = ref(900)
 let timerInterval: any = null
@@ -22,10 +29,7 @@ const formattedTime = computed(() => {
 
 const form = ref({
   clientName: '',
-  clientEmail: '',
-  cardNumber: '',
-  expiry: '',
-  cvc: ''
+  clientEmail: ''
 })
 
 const total = computed(() => {
@@ -57,12 +61,15 @@ onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval)
 })
 
-async function processPayment() {
+async function createOrder() {
+  if (!form.value.clientName || !form.value.clientEmail) {
+    errorMsg.value = 'Por favor completa todos tus datos'
+    return
+  }
   loading.value = true
   errorMsg.value = ''
   try {
     const idempotencyKey = crypto.randomUUID()
-    const token = localStorage.getItem('access_token')
 
     const payload = {
       clientName: form.value.clientName,
@@ -77,43 +84,76 @@ async function processPayment() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Idempotency-Key': idempotencyKey,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Idempotency-Key': idempotencyKey
       },
       body: JSON.stringify(payload)
     })
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
-      throw new Error(err.message || 'Error al procesar la orden')
+      throw new Error(err.message || 'Error al generar la orden')
     }
 
     const data = await response.json()
-    
-    // Procesar pago (simulación)
-    const processRes = await fetch(`${BASE_URL}/orders/${data.id}/process-payment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      }
-    });
+    orderId.value = data.id
+    clientSecret.value = data.clientSecret
 
-    if (!processRes.ok) {
-       throw new Error('Error al procesar el pago');
+    stripe = await getStripe()
+    const appearance = { 
+      theme: 'night', 
+      variables: { 
+        colorPrimary: '#8b5cf6', 
+        colorBackground: '#1a1a1a', 
+        colorText: '#ffffff',
+        colorDanger: '#ef4444'
+      } 
     }
-    // El proceso de pago ahora devuelve la orden completa con sus firmas generadas:
-    const finalOrder = await processRes.json();
     
-    // Adaptar para la vista success
-    finalOrder.orderId = finalOrder.id;
-    finalOrder.clientEmail = form.value.clientEmail; // Guardar el email en el objeto para el PDF
+    // @ts-ignore
+    elements = stripe.elements({ clientSecret: clientSecret.value, appearance })
     
-    localStorage.setItem(`order_success_${finalOrder.id}`, JSON.stringify(finalOrder));
-    localStorage.removeItem('pending_checkout');
-    router.push(`/success?orderId=${finalOrder.id}`);
+    step.value = 2
+    setTimeout(() => {
+      const paymentElement = elements.create('payment')
+      paymentElement.mount('#payment-element')
+    }, 100)
+    
   } catch (e: any) {
-    errorMsg.value = e.message || 'Hubo un error procesando el pago'
+    errorMsg.value = e.message || 'Hubo un error procesando la orden'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function confirmPayment() {
+  loading.value = true
+  errorMsg.value = ''
+  try {
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      redirect: 'if_required'
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    if (paymentIntent && paymentIntent.status === 'succeeded') {
+      const processRes = await fetch(`${BASE_URL}/orders/${orderId.value}/process-payment`, {
+        method: 'POST'
+      });
+      if (!processRes.ok) throw new Error('Error al finalizar la orden en el servidor');
+      
+      const finalOrder = await processRes.json();
+      finalOrder.orderId = finalOrder.id;
+      finalOrder.clientEmail = form.value.clientEmail; 
+      
+      localStorage.setItem(`order_success_${finalOrder.id}`, JSON.stringify(finalOrder));
+      localStorage.removeItem('pending_checkout');
+      router.push(`/success?orderId=${finalOrder.id}`);
+    }
+  } catch (e: any) {
+    errorMsg.value = e.message || 'El pago falló'
   } finally {
     loading.value = false
   }
@@ -135,41 +175,44 @@ async function processPayment() {
 
         <div v-if="errorMsg" class="bg-red-900/20 border border-red-500/30 p-4 rounded-xl text-red-300 text-sm">{{ errorMsg }}</div>
 
-        <form @submit.prevent="processPayment" class="space-y-8">
+        <div class="space-y-8">
           
-          <!-- Datos Personales -->
-          <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-gray-800">
+          <!-- Datos Personales (Paso 1) -->
+          <div v-if="step === 1" class="bg-[#1a1a1a] p-6 rounded-2xl border border-gray-800 transition-all">
             <h2 class="text-xl font-bold mb-4 text-violet-400">1. Tus Datos</h2>
-            <div class="space-y-4">
+            <form @submit.prevent="createOrder" class="space-y-4">
               <BaseInput label="Nombre Completo" v-model="form.clientName" required placeholder="Ej. Juan Pérez" />
               <BaseInput label="Correo Electrónico (Para recuperar tus entradas)" type="email" v-model="form.clientEmail" required placeholder="juan@gmail.com" />
-            </div>
-            <div class="mt-4 bg-violet-900/20 border border-violet-500/30 p-3 rounded-lg flex items-start gap-3">
-              <svg class="w-5 h-5 text-violet-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <p class="text-xs text-violet-200">Tus entradas se descargarán inmediatamente al pagar usando un PIN seguro.</p>
-            </div>
-          </div>
-
-          <!-- Datos de Pago (simulados) -->
-          <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-gray-800">
-            <h2 class="text-xl font-bold mb-4 text-violet-400">2. Pago Seguro</h2>
-            <div class="bg-gray-800/40 p-4 rounded-xl border border-gray-700/50 mb-6 flex items-center justify-center gap-2">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-              <span class="text-sm font-medium text-gray-300">Modo de Simulación (No se realizarán cobros reales)</span>
-            </div>
-            <div class="space-y-4">
-              <BaseInput label="Número de Tarjeta Falsa" v-model="form.cardNumber" required placeholder="4242 4242 4242 4242" />
-              <div class="grid grid-cols-2 gap-4">
-                <BaseInput label="Vencimiento" v-model="form.expiry" required placeholder="MM/YY" />
-                <BaseInput label="CVC" v-model="form.cvc" required placeholder="123" />
+              
+              <div class="mt-4 bg-violet-900/20 border border-violet-500/30 p-3 rounded-lg flex items-start gap-3">
+                <svg class="w-5 h-5 text-violet-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="text-xs text-violet-200">Tus entradas se descargarán inmediatamente al pagar usando un PIN seguro.</p>
               </div>
-            </div>
+
+              <BaseButton type="submit" variant="primary" :loading="loading" class="w-full py-4 text-lg mt-6">
+                Continuar al Pago
+              </BaseButton>
+            </form>
           </div>
 
-          <BaseButton type="submit" variant="primary" :loading="loading" class="w-full py-4 text-lg">
-            Pagar ${{ total.toFixed(2) }} USD
-          </BaseButton>
-        </form>
+          <!-- Datos de Pago Stripe (Paso 2) -->
+          <div v-if="step === 2" class="bg-[#1a1a1a] p-6 rounded-2xl border border-gray-800 transition-all">
+            <h2 class="text-xl font-bold mb-4 text-violet-400 flex items-center justify-between">
+              <span>2. Pago Seguro</span>
+              <svg class="w-8 h-8 text-white" viewBox="0 0 40 40" fill="currentColor"><path d="M20 2c-9.94 0-18 8.06-18 18s8.06 18 18 18 18-8.06 18-18S29.94 2 20 2zm1 25.5v2.89h-2.02v-2.9c-2.48-.38-4.32-2.11-4.32-4.51 0-2.44 1.83-3.8 4.67-4.43 1.94-.43 2.53-.87 2.53-1.63 0-.74-.74-1.29-1.92-1.29-1.2 0-2.09.52-2.42 1.54l-1.92-.81c.56-1.55 1.99-2.58 3.84-2.88V10.6h2.02v2.9c2.25.33 3.93 1.87 3.93 4.14 0 2.62-1.96 4-4.87 4.68-1.93.45-2.33 1.05-2.33 1.76 0 .8.88 1.43 2.15 1.43 1.51 0 2.51-.7 2.87-1.93l1.93.77c-.63 1.75-2.22 2.85-4.14 3.15z"/></svg>
+            </h2>
+            
+            <form @submit.prevent="confirmPayment">
+              <!-- Contenedor donde Stripe montará sus elementos -->
+              <div id="payment-element" class="mb-6 min-h-[200px]"></div>
+
+              <BaseButton type="submit" variant="primary" :loading="loading" class="w-full py-4 text-lg bg-violet-600 hover:bg-violet-500">
+                Pagar ${{ total.toFixed(2) }} USD
+              </BaseButton>
+            </form>
+          </div>
+
+        </div>
       </div>
 
       <!-- Resumen -->
