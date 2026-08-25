@@ -37,6 +37,12 @@ const router = createRouter({
       component: () => import('../views/b2c/RecoverTicketsView.vue')
     },
 
+    
+    {
+      path: '/org/:tenantId',
+      name: 'org-landing',
+      component: () => import('../views/b2c/OrgLandingView.vue')
+    },
     {
       path: '/scanner',
       name: 'scanner',

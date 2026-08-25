@@ -33,6 +33,12 @@
         <div class="space-y-4">
           <h2 class="text-xl font-bold text-gray-200 border-b border-gray-800 pb-2">🎟️ Flujo Comprador (B2C)</h2>
           
+          
+          <router-link to="/org/tenant-demo-001" class="block bg-[#131313] hover:bg-gray-800 border border-gray-700 hover:border-purple-500 rounded-xl p-4 transition-all group">
+            <h3 class="text-purple-400 font-semibold group-hover:text-purple-300">Tienda del Organizador</h3>
+            <p class="text-sm text-gray-500 mt-1">/org/:tenantId — Lista de eventos</p>
+          </router-link>
+
           <router-link to="/my-tickets" class="block bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-violet-500 transition-colors">
             <h3 class="text-white font-bold mb-1">Mi Billetera (Auto-Wallet)</h3>
             <p class="text-sm text-gray-400">Ver mis boletos guardados</p>
