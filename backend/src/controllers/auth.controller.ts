@@ -1,25 +1,32 @@
 import { Controller, Post, Body, Req } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../models/user.entity';
+import { RegisterTenantDto, LoginDto, CreateMemberDto } from '../dtos/auth.dto';
 
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Register a new Tenant and its Admin owner' })
   @Post('register-tenant')
-  registerTenant(@Body() data: any) {
+  registerTenant(@Body() data: RegisterTenantDto) {
     return this.authService.registerTenant(data);
   }
 
+  @ApiOperation({ summary: 'Login and get a JWT token' })
   @Post('login')
-  login(@Body() data: any) {
+  login(@Body() data: LoginDto) {
     return this.authService.login(data.email, data.password);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new staff member (Admin only)' })
   @Roles(UserRole.ADMIN)
   @Post('create-member')
-  createMember(@Req() req: any, @Body() data: any) {
+  createMember(@Req() req: any, @Body() data: CreateMemberDto) {
     return this.authService.createMember(req.user, data);
   }
 }
