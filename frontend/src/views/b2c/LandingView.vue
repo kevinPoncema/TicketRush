@@ -33,17 +33,37 @@
         <div class="space-y-4">
           <h2 class="text-xl font-bold text-gray-200 border-b border-gray-800 pb-2">🎟️ Flujo Comprador (B2C)</h2>
           
+          <router-link to="/my-tickets" class="block bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-violet-500 transition-colors">
+            <h3 class="text-white font-bold mb-1">Mi Billetera (Auto-Wallet)</h3>
+            <p class="text-sm text-gray-400">Ver mis boletos guardados</p>
+          </router-link>
+
+          <router-link to="/recover" class="block bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-violet-500 transition-colors">
+            <h3 class="text-white font-bold mb-1">Login Alternativo (Recuperación)</h3>
+            <p class="text-sm text-gray-400">Simula restaurar boletos</p>
+          </router-link>
+
           <router-link to="/checkout" class="block bg-[#131313] hover:bg-gray-800 border border-gray-700 hover:border-purple-500 rounded-xl p-4 transition-all group">
             <h3 class="text-purple-400 font-semibold group-hover:text-purple-300">Pantalla de Checkout</h3>
-            <p class="text-sm text-gray-500 mt-1">/checkout (Próximamente)</p>
+            <p class="text-sm text-gray-500 mt-1">/checkout</p>
           </router-link>
 
           <router-link to="/success" class="block bg-[#131313] hover:bg-gray-800 border border-gray-700 hover:border-purple-500 rounded-xl p-4 transition-all group">
             <h3 class="text-purple-400 font-semibold group-hover:text-purple-300">Boleto Digital (Success)</h3>
-            <p class="text-sm text-gray-500 mt-1">/success (Próximamente)</p>
+            <p class="text-sm text-gray-500 mt-1">/success</p>
           </router-link>
         </div>
 
+      </div>
+
+      <!-- Staff Route -->
+      <div class="mt-8 space-y-4">
+        <h2 class="text-xl font-bold text-gray-200 border-b border-gray-800 pb-2">🛡️ Operación de Campo (Staff)</h2>
+        
+        <router-link to="/scanner" class="block bg-violet-900/20 hover:bg-violet-900/40 border border-violet-500/30 hover:border-violet-500 rounded-xl p-4 transition-all group text-center">
+          <h3 class="text-violet-400 font-bold text-xl group-hover:text-white">Escáner Móvil (Lector QR)</h3>
+          <p class="text-sm text-gray-400 mt-1">/scanner - App web progresiva para porteros</p>
+        </router-link>
       </div>
 
     </div>

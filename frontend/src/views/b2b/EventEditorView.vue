@@ -19,11 +19,11 @@ const form = ref({
 })
 
 const tiers = ref([
-  { id: '', name: 'General', price: 0, capacity: 100 }
+  { id: '', name: 'General', price: 0, capacity: 100, description: '' }
 ])
 
 function addTier() {
-  tiers.value.push({ id: '', name: '', price: 0, capacity: 0 })
+  tiers.value.push({ id: '', name: '', price: 0, capacity: 0, description: '' })
 }
 
 function removeTier(index: number) {
@@ -98,25 +98,30 @@ onMounted(() => {
         </div>
 
         <div class="space-y-4">
-          <div v-for="(tier, index) in tiers" :key="index" class="flex flex-col md:flex-row gap-4 items-end bg-[#131313] p-4 rounded-lg border border-gray-800">
-            <div class="flex-1 w-full">
-              <BaseInput label="Nombre de Categoría" v-model="tier.name" required placeholder="Ej. VIP" />
+          <div v-for="(tier, index) in tiers" :key="index" class="flex flex-col gap-4 bg-[#131313] p-4 rounded-lg border border-gray-800">
+            <div class="flex flex-col md:flex-row gap-4 items-end">
+              <div class="flex-1 w-full">
+                <BaseInput label="Nombre de Categoría" v-model="tier.name" required placeholder="Ej. VIP" />
+              </div>
+              <div class="w-full md:w-32">
+                <BaseInput label="Precio ($)" type="number" min="0" v-model="tier.price" required />
+              </div>
+              <div class="w-full md:w-32">
+                <BaseInput label="Capacidad" type="number" min="1" v-model="tier.capacity" required />
+              </div>
+              <BaseButton 
+                type="button" 
+                variant="danger" 
+                @click="removeTier(index)"
+                :disabled="tiers.length === 1"
+                class="w-full md:w-auto"
+              >
+                Quitar
+              </BaseButton>
             </div>
-            <div class="w-full md:w-32">
-              <BaseInput label="Precio ($)" type="number" min="0" v-model="tier.price" required />
+            <div class="w-full">
+              <BaseInput label="Descripción (Opcional)" v-model="tier.description" placeholder="Ej. Acceso anticipado y mercancía oficial..." />
             </div>
-            <div class="w-full md:w-32">
-              <BaseInput label="Capacidad" type="number" min="1" v-model="tier.capacity" required />
-            </div>
-            <BaseButton 
-              type="button" 
-              variant="danger" 
-              @click="removeTier(index)"
-              :disabled="tiers.length === 1"
-              class="w-full md:w-auto"
-            >
-              Quitar
-            </BaseButton>
           </div>
         </div>
       </div>

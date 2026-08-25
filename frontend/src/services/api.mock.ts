@@ -31,7 +31,7 @@ export const MockApiService = {
           email: data.clientEmail,
           tickets: data.tiers,
           status: 'PAID'
-        };
+        }
 
         // Persistencia temporal (Mocking BD + LocalStorage del cliente)
         localStorage.setItem(`vantage_order_${orderId}`, JSON.stringify(orderRecord));
@@ -53,5 +53,39 @@ export const MockApiService = {
         else reject(new Error("Order not found"));
       }, 300);
     });
+  },
+
+  async recoverByPin(email: string, pin: string) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Buscamos primero en el localStorage por si acaso está pero no indexado
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('vantage_order_'))
+        for (const k of keys) {
+          const item = JSON.parse(localStorage.getItem(k) || '{}')
+          if (item.email === email && item.accessPin === pin) {
+            resolve([item])
+            return
+          }
+        }
+        
+        // Simulación: Si no existe en LocalStorage (borró caché), inventamos una respuesta del Backend
+        const fakeOrder = {
+          orderId: "ord_" + Math.random().toString(36).substr(2, 9),
+          accessPin: pin,
+          email: email,
+          tickets: [
+            { tierId: "t1", name: "General Access", price: 45.00, quantity: 2 }
+          ],
+          status: 'PAID',
+          eventName: 'Neon Nights Festival',
+          organizationName: 'VANTAGE Productions'
+        }
+        
+        // Restauramos en el localStorage
+        localStorage.setItem(`vantage_order_${fakeOrder.orderId}`, JSON.stringify(fakeOrder));
+        
+        resolve([fakeOrder]);
+      }, 1000);
+    });
   }
-};
+}

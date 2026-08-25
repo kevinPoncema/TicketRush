@@ -20,10 +20,27 @@ const router = createRouter({
       name: 'checkout',
       component: () => import('../views/b2c/CheckoutView.vue')
     },
+    
     {
       path: '/success',
       name: 'success',
       component: () => import('../views/b2c/SuccessView.vue')
+    },
+    {
+      path: '/my-tickets',
+      name: 'my-tickets',
+      component: () => import('../views/b2c/MyTicketsView.vue')
+    },
+    {
+      path: '/recover',
+      name: 'recover',
+      component: () => import('../views/b2c/RecoverTicketsView.vue')
+    },
+
+    {
+      path: '/scanner',
+      name: 'scanner',
+      component: () => import('../views/b2b/StaffScannerView.vue')
     },
     {
       path: '/auth/register',
