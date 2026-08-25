@@ -19,14 +19,17 @@ import { Ticket } from './models/ticket.entity';
 import { TenantRepository } from './Repositories/tenant.repository';
 import { EventRepository } from './Repositories/event.repository';
 import { UserRepository } from './Repositories/user.repository';
+import { TenantConfigRepository } from './Repositories/tenant-config.repository';
 
 import { TenantService } from './services/tenant.service';
 import { EventService } from './services/event.service';
 import { AuthService } from './services/auth.service';
+import { TenantConfigService } from './services/tenant-config.service';
 
 import { TenantController } from './controllers/tenant.controller';
 import { EventController } from './controllers/event.controller';
 import { AuthController } from './controllers/auth.controller';
+import { TenantConfigController } from './controllers/tenant-config.controller';
 
 import { AuthMiddleware } from './middlewares/auth.middleware';
 
@@ -38,7 +41,7 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
       entities: [Tenant, User, TenantConfig, Event, TicketTier, Client, Order, Ticket],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([Order, Ticket, TicketTier, Client, Tenant, Event, User]),
+    TypeOrmModule.forFeature([Order, Ticket, TicketTier, Client, Tenant, Event, User, TenantConfig]),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
@@ -54,15 +57,17 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
     }),
     JobsModule,
   ],
-  controllers: [AppController, AuthController, TenantController, EventController],
+  controllers: [AppController, AuthController, TenantController, EventController, TenantConfigController],
   providers: [
     AppService,
     TenantRepository,
     EventRepository,
     UserRepository,
+    TenantConfigRepository,
     TenantService,
     EventService,
-    AuthService
+    AuthService,
+    TenantConfigService
   ],
 })
 export class AppModule implements NestModule {
