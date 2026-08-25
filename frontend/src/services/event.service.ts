@@ -3,7 +3,10 @@ export const EventService = {
     return new Promise((resolve) => {
       setTimeout(() => {
         const eventsStr = localStorage.getItem('mock_events')
-        resolve(eventsStr ? JSON.parse(eventsStr) : [])
+        const parsed = eventsStr ? JSON.parse(eventsStr) : [];
+        const cleanEvents = parsed.filter((e: any) => e && e.id && e.id.trim() !== '');
+        if (parsed.length !== cleanEvents.length) localStorage.setItem('mock_events', JSON.stringify(cleanEvents));
+        resolve(cleanEvents);
       }, 400)
     })
   },
@@ -16,8 +19,8 @@ export const EventService = {
         
         const isUpdate = !!eventData.id
         const newEvent = {
-          id: isUpdate ? eventData.id : `evt-${Date.now()}`,
           ...eventData,
+          id: isUpdate ? eventData.id : `evt-${Date.now()}`,
           tiers: tiers.map(t => ({ ...t, id: t.id || `tier-${Math.random().toString(36).substr(2, 6)}` }))
         }
 
