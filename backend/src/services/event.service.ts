@@ -18,6 +18,10 @@ export class EventService {
     return this.eventRepository.findByIdAndTenant(id, tenantId);
   }
 
+  async getUpcomingByTenantPublic(tenantId: string): Promise<Event[]> {
+    return this.eventRepository.findUpcomingByTenantPublic(tenantId);
+  }
+
   async getEventPublic(id: string): Promise<Event> {
     return this.eventRepository.findByIdPublic(id);
   }

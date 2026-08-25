@@ -28,6 +28,16 @@ export class EventRepository {
     return event;
   }
 
+  async findUpcomingByTenantPublic(tenantId: string): Promise<Event[]> {
+    return this.repository
+      .createQueryBuilder('event')
+      .leftJoinAndSelect('event.ticketTiers', 'ticketTiers')
+      .where('event.tenant_id = :tenantId', { tenantId })
+      .andWhere('event.date >= :now', { now: new Date() })
+      .orderBy('event.date', 'ASC')
+      .getMany();
+  }
+
   async findByIdPublic(id: string): Promise<Event> {
     const event = await this.repository.findOne({
       where: { id },
