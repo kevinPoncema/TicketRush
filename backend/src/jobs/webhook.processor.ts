@@ -27,7 +27,7 @@ export class WebhookProcessor extends WorkerHost {
 
     const tenantId = order.tickets[0].ticketTier.event.tenantId;
 
-    const config = await this.tenantConfigRepo.findByTenantId(tenantId);
+    const config = await this.tenantConfigRepo.findByTenant(tenantId);
 
     if (!config || !config.webhookUrl) {
       this.logger.debug(`No webhook configured for tenant ${tenantId}. Skipping notification.`);

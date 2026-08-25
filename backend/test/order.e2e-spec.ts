@@ -70,7 +70,7 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
           clientName: `User ${i}`,
           tiers: [{ ticketTierId: testTierId, quantity: 1 }],
         },
-        `idempotency-test-${i}`
+        `idempotency-test-${Date.now()}-${i}`
       ).catch((e) => e)
     );
 

@@ -48,7 +48,6 @@ export class OrderRepository {
     await repo.update(id, { status });
     return this.findById(id, manager);
   }
-}
 
   async findByIdWithFullRelations(id: string, manager?: EntityManager): Promise<Order> {
     const repo = this.getRepo(manager);
@@ -66,3 +65,5 @@ export class OrderRepository {
     if (!order) throw new NotFoundException('Order not found');
     return order;
   }
+}
+
