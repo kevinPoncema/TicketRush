@@ -30,9 +30,11 @@ async function attemptRecovery() {
       throw new Error(err.message || 'No se encontraron boletos con estos datos.')
     }
     const order = await response.json()
+    order.orderId = order.id; // Map id
+    order.clientEmail = form.value.email;
     // Guardar en localStorage para que SuccessView lo pueda mostrar
-    localStorage.setItem(`order_success_${order.orderId}`, JSON.stringify(order))
-    router.push(`/success?orderId=${order.orderId}`)
+    localStorage.setItem(`order_success_${order.id}`, JSON.stringify(order))
+    router.push(`/success?orderId=${order.id}`)
   } catch (e: any) {
     errorMsg.value = e.message || 'Error recuperando tus boletos.'
   } finally {

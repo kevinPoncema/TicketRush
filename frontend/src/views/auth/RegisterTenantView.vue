@@ -8,8 +8,9 @@ const authStore = useAuthStore()
 
 const form = ref({
   tenantName: '',
-  adminEmail: '',
-  password: ''
+  userName: '',
+  userEmail: '',
+  userPassword: ''
 })
 const loading = ref(false)
 
@@ -18,8 +19,8 @@ async function submit() {
   try {
     await authStore.register(form.value)
     router.push('/b2b')
-  } catch (e) {
-    alert('Error al registrar')
+  } catch (e: any) {
+    alert(e.message || 'Error al registrar')
   } finally {
     loading.value = false
   }
@@ -39,13 +40,18 @@ async function submit() {
         </div>
         
         <div>
+          <label class="block text-sm font-medium text-gray-300 mb-1">Tu Nombre</label>
+          <input v-model="form.userName" required type="text" class="w-full bg-[#131313] border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors" placeholder="Ej. Juan Pérez">
+        </div>
+
+        <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">Correo del Administrador</label>
-          <input v-model="form.adminEmail" required type="email" class="w-full bg-[#131313] border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors" placeholder="admin@ravecorp.com">
+          <input v-model="form.userEmail" required type="email" class="w-full bg-[#131313] border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors" placeholder="admin@ravecorp.com">
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">Contraseña</label>
-          <input v-model="form.password" required type="password" class="w-full bg-[#131313] border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors" placeholder="••••••••">
+          <input v-model="form.userPassword" required type="password" minlength="6" class="w-full bg-[#131313] border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors" placeholder="••••••••">
         </div>
 
         <button :disabled="loading" type="submit" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 rounded-lg transition-colors flex justify-center items-center">

@@ -14,7 +14,7 @@ onMounted(() => {
   }
 
   orders.value = keys.map(k => {
-    try { return JSON.parse(localStorage.getItem(k) || '{}') } catch { return null }
+    try { const o = JSON.parse(localStorage.getItem(k) || '{}'); o.orderId = o.id || o.orderId; return o; } catch { return null }
   }).filter(o => o && o.orderId).sort((a, b) => b.orderId.localeCompare(a.orderId))
 })
 

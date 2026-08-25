@@ -1,7 +1,8 @@
 export interface RegisterTenantDto {
   tenantName: string;
-  adminEmail: string;
-  password: string;
+  userName: string;
+  userEmail: string;
+  userPassword: string;
 }
 
 export interface LoginDto {
@@ -10,6 +11,7 @@ export interface LoginDto {
 }
 
 export interface CreateMemberDto {
+  name: string;
   email: string;
   password: string;
   role: 'ADMIN' | 'STAFF';

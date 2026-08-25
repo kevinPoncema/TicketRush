@@ -46,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function register(data: RegisterTenantDto) {
     await AuthService.registerTenant(data)
-    await login({ email: data.adminEmail, password: data.password })
+    await login({ email: data.userEmail, password: data.userPassword })
   }
 
   function logout() {

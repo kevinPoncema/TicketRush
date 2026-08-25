@@ -54,7 +54,7 @@ function downloadPDF() {
   if (!order.value) return
   const email = encodeURIComponent(order.value.clientEmail || order.value.email || '')
   const pin = encodeURIComponent(order.value.accessPin)
-  window.open(`${BASE_URL}/orders/${order.value.orderId}/pdf?email=${email}&accessPin=${pin}`, '_blank')
+  window.open(`${BASE_URL}/orders/${(order.value.id || order.value.orderId)}/pdf?email=${email}&accessPin=${pin}`, '_blank')
 }
 
 onMounted(() => { fetchOrder() })
@@ -115,10 +115,10 @@ onMounted(() => { fetchOrder() })
           </div>
           <div class="p-8 flex flex-col items-center bg-gray-50">
             <div class="w-48 h-48 bg-white border-4 border-white shadow-sm rounded-lg overflow-hidden flex items-center justify-center mb-6">
-              <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${order.orderId}-${currentTicketIndex}`" alt="QR Code" class="w-full h-full object-contain" />
+              <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${(order.id || order.orderId)}-${currentTicketIndex}`" alt="QR Code" class="w-full h-full object-contain" />
             </div>
             <div class="w-full border-t-2 border-dashed border-gray-300 my-2"></div>
-            <p class="text-xs text-gray-400 font-mono text-center mt-4 uppercase">ID: {{ order.orderId }}-{{ currentTicketIndex }}</p>
+            <p class="text-xs text-gray-400 font-mono text-center mt-4 uppercase">ID: {{ (order.id || order.orderId) }}-{{ currentTicketIndex }}</p>
             <p class="text-[10px] text-gray-400 text-center mt-1 uppercase font-bold">VANTAGE Ticketing</p>
           </div>
         </div>

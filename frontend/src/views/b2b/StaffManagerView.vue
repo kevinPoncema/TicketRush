@@ -7,7 +7,7 @@ const members = ref<User[]>([])
 const loading = ref(false)
 
 const showModal = ref(false)
-const form = ref({ email: '', password: '', role: 'STAFF' as 'STAFF' | 'ADMIN' })
+const form = ref({ name: '', email: '', password: '', role: 'STAFF' as 'STAFF' | 'ADMIN' })
 const formLoading = ref(false)
 
 async function fetchMembers() {
@@ -26,7 +26,7 @@ async function createMember() {
     const newUser: any = await AuthService.createMember(form.value)
     members.value.push(newUser)
     showModal.value = false
-    form.value = { email: '', password: '', role: 'STAFF' }
+    form.value = { name: '', email: '', password: '', role: 'STAFF' }
   } catch (e) {
     alert('Error al crear usuario')
   } finally {
@@ -34,7 +34,7 @@ async function createMember() {
   }
 }
 
-function deleteMember(id: string) {
+async function deleteMember(id: string) {
   // El backend no implementa DELETE /auth/member/:id todavía.
   // Ver docs/pendiente.md para detalles.
   try { await AuthService.deleteMember(id); await fetchMembers(); } catch (e) { alert('Error al eliminar'); }
@@ -77,7 +77,8 @@ onMounted(() => {
         <tbody class="divide-y divide-gray-800">
           <tr v-for="member in members" :key="member.id" class="hover:bg-gray-800/20 transition-colors">
             <td class="px-6 py-4">
-              <div class="font-medium">{{ member.email }}</div>
+              <div class="font-medium">{{ member.name }}</div>
+              <div class="text-xs text-gray-500 font-mono mt-0.5">{{ member.email }}</div>
               <div class="text-xs text-gray-500 font-mono mt-0.5">ID: {{ member.id }}</div>
             </td>
             <td class="px-6 py-4">
@@ -98,6 +99,10 @@ onMounted(() => {
       <div class="bg-[#1a1a1a] w-full max-w-md rounded-2xl border border-gray-800 p-6">
         <h3 class="text-xl font-bold mb-4">Añadir Miembro del Staff</h3>
         <form @submit.prevent="createMember" class="space-y-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Nombre</label>
+            <input v-model="form.name" required type="text" class="w-full bg-[#131313] border border-gray-700 rounded-lg px-4 py-2 focus:border-violet-500 focus:outline-none">
+          </div>
           <div>
             <label class="block text-sm text-gray-400 mb-1">Correo Electrónico</label>
             <input v-model="form.email" required type="email" class="w-full bg-[#131313] border border-gray-700 rounded-lg px-4 py-2 focus:border-violet-500 focus:outline-none">

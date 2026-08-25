@@ -89,8 +89,28 @@ async function processPayment() {
     }
 
     const data = await response.json()
-    localStorage.removeItem('pending_checkout')
-    router.push(`/success?orderId=${data.orderId}`)
+    
+    // Procesar pago (simulación)
+    const processRes = await fetch(`${BASE_URL}/orders/${data.id}/process-payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      }
+    });
+
+    if (!processRes.ok) {
+       throw new Error('Error al procesar el pago');
+    }
+    const finalOrder = await processRes.json();
+    
+    // Adaptar para la vista success
+    finalOrder.orderId = finalOrder.id;
+    finalOrder.clientEmail = form.value.clientEmail; // Guardar el email en el objeto para el PDF
+    
+    localStorage.setItem(`order_success_${finalOrder.id}`, JSON.stringify(finalOrder));
+    localStorage.removeItem('pending_checkout');
+    router.push(`/success?orderId=${finalOrder.id}`);
   } catch (e: any) {
     errorMsg.value = e.message || 'Hubo un error procesando el pago'
   } finally {
