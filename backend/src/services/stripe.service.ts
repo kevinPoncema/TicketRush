@@ -6,7 +6,11 @@ export class StripeService {
   private stripe: Stripe;
 
   constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51MockKeyABC123', {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY no está definida en el .env');
+    }
+    this.stripe = new Stripe(secretKey, {
       apiVersion: '2022-11-15' as any,
     });
   }
