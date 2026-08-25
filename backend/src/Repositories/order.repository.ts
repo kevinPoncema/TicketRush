@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { Order, OrderStatus } from '../models/order.entity';
 
 @Injectable()
@@ -10,14 +10,37 @@ export class OrderRepository {
     private readonly repository: Repository<Order>,
   ) {}
 
-  async findById(id: string): Promise<Order> {
-    const order = await this.repository.findOne({ where: { id } });
+  private getRepo(manager?: EntityManager) {
+    return manager ? manager.getRepository(Order) : this.repository;
+  }
+
+  async findById(id: string, manager?: EntityManager): Promise<Order> {
+    const repo = this.getRepo(manager);
+    const order = await repo.findOne({ where: { id }, relations: { tickets: true } });
     if (!order) throw new NotFoundException('Order not found');
     return order;
   }
 
-  async updateStatus(id: string, status: OrderStatus): Promise<Order> {
-    await this.repository.update(id, { status });
-    return this.findById(id);
+  async findByIdAndLock(id: string, manager: EntityManager): Promise<Order> {
+    const repo = this.getRepo(manager);
+    const order = await repo.findOne({ 
+      where: { id }, 
+      relations: { tickets: true },
+      lock: { mode: 'pessimistic_write' } 
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    return order;
+  }
+
+  async create(data: Partial<Order>, manager?: EntityManager): Promise<Order> {
+    const repo = this.getRepo(manager);
+    const order = repo.create(data);
+    return repo.save(order);
+  }
+
+  async updateStatus(id: string, status: OrderStatus, manager?: EntityManager): Promise<Order> {
+    const repo = this.getRepo(manager);
+    await repo.update(id, { status });
+    return this.findById(id, manager);
   }
 }
