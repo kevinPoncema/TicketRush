@@ -14,6 +14,14 @@ export class TicketRepository {
     return manager ? manager.getRepository(Ticket) : this.repository;
   }
 
+  async findById(id: string, manager?: EntityManager): Promise<Ticket | null> {
+    const repo = this.getRepo(manager);
+    return repo.findOne({ 
+      where: { id }, 
+      relations: { ticketTier: { event: true } }
+    });
+  }
+
   async createTickets(tickets: Partial<Ticket>[], manager?: EntityManager): Promise<Ticket[]> {
     const repo = this.getRepo(manager);
     const instances = repo.create(tickets);
@@ -23,6 +31,11 @@ export class TicketRepository {
   async saveBulk(tickets: Ticket[], manager?: EntityManager): Promise<Ticket[]> {
     const repo = this.getRepo(manager);
     return repo.save(tickets);
+  }
+  
+  async save(ticket: Ticket, manager?: EntityManager): Promise<Ticket> {
+    const repo = this.getRepo(manager);
+    return repo.save(ticket);
   }
   
   async updateStatusByOrder(orderId: string, status: TicketStatus, manager?: EntityManager) {
