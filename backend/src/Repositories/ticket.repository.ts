@@ -19,6 +19,11 @@ export class TicketRepository {
     const instances = repo.create(tickets);
     return repo.save(instances);
   }
+
+  async saveBulk(tickets: Ticket[], manager?: EntityManager): Promise<Ticket[]> {
+    const repo = this.getRepo(manager);
+    return repo.save(tickets);
+  }
   
   async updateStatusByOrder(orderId: string, status: TicketStatus, manager?: EntityManager) {
     const repo = this.getRepo(manager);

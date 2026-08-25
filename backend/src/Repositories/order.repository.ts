@@ -32,6 +32,11 @@ export class OrderRepository {
     return order;
   }
 
+  async findByIdempotencyKey(idempotencyKey: string, manager?: EntityManager): Promise<Order | null> {
+    const repo = this.getRepo(manager);
+    return repo.findOne({ where: { idempotencyKey }, relations: { tickets: true } });
+  }
+
   async create(data: Partial<Order>, manager?: EntityManager): Promise<Order> {
     const repo = this.getRepo(manager);
     const order = repo.create(data);

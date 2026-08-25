@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { randomUUID } from 'crypto';
+import * as crypto from 'crypto';
 
 import { OrderRepository } from '../Repositories/order.repository';
 import { TicketTierRepository } from '../Repositories/ticket-tier.repository';
@@ -24,17 +24,31 @@ export class OrderService {
     @InjectQueue('reserve-queue') private readonly redisQueue: Queue,
   ) { }
 
-  async createOrder(data: CreateOrderDto) {
+  async createOrder(data: CreateOrderDto, idempotencyKey: string) {
+    const existingOrder = await this.orderRepository.findByIdempotencyKey(idempotencyKey);
+    if (existingOrder) {
+      return {
+        message: 'Order already exists for this Idempotency-Key',
+        order: existingOrder
+      };
+    }
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
+      const existingInTx = await this.orderRepository.findByIdempotencyKey(idempotencyKey, queryRunner.manager);
+      if (existingInTx) {
+        await queryRunner.rollbackTransaction();
+        return { message: 'Order already exists', order: existingInTx };
+      }
+
       const client = await this.resolveClient(data.clientEmail, data.clientName, queryRunner.manager);
 
       const { totalAmount, ticketsToCreate } = await this.processTiersSequentially(data.tiers, queryRunner.manager);
 
-      const order = await this.saveOrderAndTickets(client.id, totalAmount, ticketsToCreate, queryRunner.manager);
+      const order = await this.saveOrderAndTickets(client.id, totalAmount, ticketsToCreate, idempotencyKey, queryRunner.manager);
 
       await queryRunner.commitTransaction();
 
@@ -54,44 +68,35 @@ export class OrderService {
   }
 
   private async processTiersSequentially(tiers: OrderTierItemDto[], manager: EntityManager) {
-    const tierPromises = tiers.map(item => this.processSingleTier(item, manager));
-    const results = await Promise.all(tierPromises);
+    const sortedTiers = [...tiers].sort((a, b) => a.ticketTierId.localeCompare(b.ticketTierId));
 
     let totalAmount = 0;
     const ticketsToCreate: Partial<Ticket>[] = [];
 
-    for (const result of results) {
-      totalAmount += result.amount;
-      ticketsToCreate.push(...result.tickets);
+    for (const item of sortedTiers) {
+      const tier = await this.ticketTierRepository.findByIdAndLock(item.ticketTierId, manager);
+
+      if (tier.availableStock < item.quantity) {
+        throw new BadRequestException(`Sold out: No hay suficiente stock para el tier ${tier.name}`);
+      }
+
+      tier.availableStock -= item.quantity;
+      await this.ticketTierRepository.save(tier, manager);
+
+      const amount = Number(tier.price) * item.quantity;
+      for (let i = 0; i < item.quantity; i++) {
+        ticketsToCreate.push({
+          ticketTierId: tier.id,
+          status: TicketStatus.RESERVED,
+        });
+      }
+      totalAmount += amount;
     }
 
     return { totalAmount, ticketsToCreate };
   }
 
-  private async processSingleTier(item: OrderTierItemDto, manager: EntityManager) {
-    const tier = await this.ticketTierRepository.findByIdAndLock(item.ticketTierId, manager);
-
-    if (tier.availableStock < item.quantity) {
-      throw new BadRequestException(`Sold out: No hay suficiente stock para el tier ${tier.name}`);
-    }
-
-    tier.availableStock -= item.quantity;
-    await this.ticketTierRepository.save(tier, manager);
-
-    const amount = Number(tier.price) * item.quantity;
-    const tickets: Partial<Ticket>[] = [];
-
-    for (let i = 0; i < item.quantity; i++) {
-      tickets.push({
-        ticketTierId: tier.id,
-        status: TicketStatus.RESERVED,
-      });
-    }
-
-    return { amount, tickets };
-  }
-
-  private async saveOrderAndTickets(clientId: string, totalAmount: number, ticketsToCreate: Partial<Ticket>[], manager: EntityManager) {
+  private async saveOrderAndTickets(clientId: string, totalAmount: number, ticketsToCreate: Partial<Ticket>[], idempotencyKey: string, manager: EntityManager) {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
@@ -99,23 +104,29 @@ export class OrderService {
       clientId,
       totalAmount,
       status: OrderStatus.PENDING,
-      idempotencyKey: randomUUID(),
+      idempotencyKey,
       expiresAt,
     }, manager);
 
     const ticketsWithOrder = ticketsToCreate.map(t => ({ ...t, orderId: order.id }));
-    await this.ticketRepository.createTickets(ticketsWithOrder, manager);
+    const savedTickets = await this.ticketRepository.createTickets(ticketsWithOrder, manager);
 
+    order.tickets = savedTickets;
     return order;
   }
 
   private async scheduleOrderExpiration(orderId: string) {
-    const delayInMinutes = 15 * 60 * 1000;
     await this.redisQueue.add(
       'expire-order',
       { orderId },
-      { delay: delayInMinutes }
+      { delay: 15 * 60 * 1000 }
     );
+  }
+
+  private generateTicketSignature(ticketId: string, orderId: string): string {
+    const secret = process.env.HMAC_SECRET || 'super-secret-ticketrush-key';
+    const payload = `${ticketId}:${orderId}`;
+    return crypto.createHmac('sha256', secret).update(payload).digest('hex');
   }
 
   async processPayment(orderId: string) {
@@ -135,7 +146,12 @@ export class OrderService {
       if (isSuccess) {
         order.status = OrderStatus.PAID;
         await queryRunner.manager.save(order);
-        await this.ticketRepository.updateStatusByOrder(order.id, TicketStatus.VALID, queryRunner.manager);
+
+        for (const ticket of order.tickets) {
+          ticket.status = TicketStatus.VALID;
+          ticket.signature = this.generateTicketSignature(ticket.id, order.id);
+        }
+        await this.ticketRepository.saveBulk(order.tickets, queryRunner.manager);
 
         await queryRunner.commitTransaction();
         return { success: true, orderStatus: OrderStatus.PAID };

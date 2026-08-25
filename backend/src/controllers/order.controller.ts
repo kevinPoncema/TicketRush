@@ -1,5 +1,5 @@
-import { Controller, Post, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Controller, Post, Body, Param, Headers, BadRequestException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiHeader } from '@nestjs/swagger';
 import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dtos/order.dto';
 
@@ -9,9 +9,16 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @ApiOperation({ summary: 'Create a new order and reserve tickets' })
+  @ApiHeader({ name: 'Idempotency-Key', description: 'Unique key to prevent duplicate orders', required: true })
   @Post()
-  create(@Body() data: CreateOrderDto) {
-    return this.orderService.createOrder(data);
+  create(
+    @Headers('Idempotency-Key') idempotencyKey: string, 
+    @Body() data: CreateOrderDto
+  ) {
+    if (!idempotencyKey) {
+      throw new BadRequestException('Idempotency-Key header is strictly required');
+    }
+    return this.orderService.createOrder(data, idempotencyKey);
   }
 
   @ApiOperation({ summary: 'Simulate processing payment for an order' })
