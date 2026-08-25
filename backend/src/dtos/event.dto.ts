@@ -15,6 +15,11 @@ export class CreateEventDto {
   @ApiProperty({ example: 'Estadio Nacional' })
   @IsString()
   location: string;
+
+  @ApiProperty({ required: false, example: 'https://example.com/banner.jpg' })
+  @IsString()
+  @IsOptional()
+  bannerUrl?: string;
 }
 
 export class UpdateEventDto {
@@ -33,4 +38,9 @@ export class UpdateEventDto {
   @IsString()
   @IsOptional()
   location?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  bannerUrl?: string;
 }

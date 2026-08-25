@@ -18,4 +18,15 @@ export class UserRepository {
   async findByEmail(email: string): Promise<User | null> {
     return this.repository.findOne({ where: { email } });
   }
+
+  async findByTenantId(tenantId: string): Promise<User[]> {
+    return this.repository.find({
+      where: { tenantId },
+      select: ['id', 'name', 'email', 'role', 'createdAt'] // Don't return passwords
+    });
+  }
+
+  async deleteByIdAndTenant(id: string, tenantId: string): Promise<void> {
+    await this.repository.delete({ id, tenantId });
+  }
 }

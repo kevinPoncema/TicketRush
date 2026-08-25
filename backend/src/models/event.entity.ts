@@ -19,6 +19,9 @@ export class Event {
   @Column()
   location: string;
 
+  @Column({ name: 'banner_url', nullable: true })
+  bannerUrl: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

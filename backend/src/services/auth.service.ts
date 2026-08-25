@@ -66,6 +66,14 @@ export class AuthService {
     };
   }
 
+  async listMembers(tenantId: string) {
+    return this.userRepository.findByTenantId(tenantId);
+  }
+
+  async deleteMember(tenantId: string, memberId: string) {
+    await this.userRepository.deleteByIdAndTenant(memberId, tenantId);
+  }
+
   async createMember(adminUser: any, data: any) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(data.password, salt);
