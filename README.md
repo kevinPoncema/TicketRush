@@ -199,7 +199,7 @@ npm run dev
 
 Hemos diseñado una suite de tests E2E y de Integración que valida matemáticamente la integridad del motor transaccional previniendo la sobreventa. Para correr las pruebas sin afectar tu base de datos de desarrollo, utilizamos un entorno de pruebas aislado.
 
-Ejecuta el script automatizado (levantará su propio Postgres efímero, correrá los tests en el puerto 5433, y luego destruirá la base de datos):
+Ejecuta el script automatizado. Este script utiliza Docker Compose para crear un contenedor completamente aislado de la aplicación (`app_test`), una base de datos efímera y Redis. **Los tests se ejecutan dentro del contenedor**, asegurando un entorno 100% idéntico a producción, sin requerir Node en tu máquina anfitriona. Al finalizar los tests, la infraestructura se destruye automáticamente:
 
 ```bash
 cd backend

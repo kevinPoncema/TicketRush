@@ -35,7 +35,6 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
     const eventRepo = app.get<EventRepository>(EventRepository);
 
     // 2. Limpiar base de datos (SÓLO DE TEST) para tener un entorno predecible
-    await dataSource.synchronize(true); // CUIDADO: esto borra todo, por eso usamos DB de test
 
     // 3. Preparar los datos de prueba
     const tenant = await tenantRepo.create({ name: 'Test Tenant' });
