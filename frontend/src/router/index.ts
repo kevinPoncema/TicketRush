@@ -10,6 +10,16 @@ const router = createRouter({
       component: () => import('../views/b2c/LandingView.vue')
     },
     {
+      path: '/checkout',
+      name: 'checkout',
+      component: () => import('../views/b2c/CheckoutView.vue')
+    },
+    {
+      path: '/success',
+      name: 'success',
+      component: () => import('../views/b2c/SuccessView.vue')
+    },
+    {
       path: '/auth/register',
       name: 'register',
       component: () => import('../views/auth/RegisterTenantView.vue')
@@ -25,10 +35,27 @@ const router = createRouter({
       component: () => import('../views/b2b/DashboardView.vue'),
       meta: { requiresAuth: true, requiresAdmin: true },
       children: [
+        
         {
           path: 'staff',
           name: 'staff-manager',
           component: () => import('../views/b2b/StaffManagerView.vue')
+        },
+        
+        {
+          path: 'events',
+          name: 'event-list',
+          component: () => import('../views/b2b/EventListView.vue')
+        },
+        {
+          path: 'events/new',
+          name: 'event-create',
+          component: () => import('../views/b2b/EventEditorView.vue')
+        },
+        {
+          path: 'events/:id/edit',
+          name: 'event-edit',
+          component: () => import('../views/b2b/EventEditorView.vue')
         }
       ]
     }
@@ -36,7 +63,7 @@ const router = createRouter({
 })
 
 // Navigation Guard
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/auth/login')
