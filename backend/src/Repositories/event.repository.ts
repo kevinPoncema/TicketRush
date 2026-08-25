@@ -8,7 +8,7 @@ export class EventRepository {
   constructor(
     @InjectRepository(Event)
     private readonly repository: Repository<Event>,
-  ) {}
+  ) { }
 
   async create(data: Partial<Event>): Promise<Event> {
     const event = this.repository.create(data);
@@ -16,12 +16,24 @@ export class EventRepository {
   }
 
   async findAllByTenant(tenantId: string): Promise<Event[]> {
-    return this.repository.find({ where: { tenantId } });
+    return this.repository.find({
+      where: { tenantId },
+      relations: { ticketTiers: true }
+    });
   }
 
   async findByIdAndTenant(id: string, tenantId: string): Promise<Event> {
     const event = await this.repository.findOne({ where: { id, tenantId } });
     if (!event) throw new NotFoundException('Event not found or access denied');
+    return event;
+  }
+
+  async findByIdPublic(id: string): Promise<Event> {
+    const event = await this.repository.findOne({
+      where: { id },
+      relations: { ticketTiers: true }
+    });
+    if (!event) throw new NotFoundException('Event not found');
     return event;
   }
 

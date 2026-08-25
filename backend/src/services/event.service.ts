@@ -18,6 +18,10 @@ export class EventService {
     return this.eventRepository.findByIdAndTenant(id, tenantId);
   }
 
+  async getEventPublic(id: string): Promise<Event> {
+    return this.eventRepository.findByIdPublic(id);
+  }
+
   async updateEvent(id: string, tenantId: string, data: Partial<Event>): Promise<Event> {
     return this.eventRepository.update(id, tenantId, data);
   }
