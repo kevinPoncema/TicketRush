@@ -22,7 +22,13 @@ export class UserRepository {
   async findByTenantId(tenantId: string): Promise<User[]> {
     return this.repository.find({
       where: { tenantId },
-      select: ['id', 'name', 'email', 'role', 'createdAt'] // Don't return passwords
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true
+      }
     });
   }
 
