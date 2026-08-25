@@ -15,10 +15,10 @@ export class StripeService {
     });
   }
 
-  async createPaymentIntent(amount: number, orderId: string): Promise<string> {
+  async createPaymentIntent(amount: number, orderId: string, currency: string = 'usd'): Promise<string> {
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
-      currency: 'usd',
+      currency,
       metadata: { orderId },
     });
     return paymentIntent.client_secret || '';

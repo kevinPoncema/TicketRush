@@ -9,6 +9,8 @@ import { NotFoundException } from '@nestjs/common';
 import { OrderRepository } from '../Repositories/order.repository';
 import { TicketTierRepository } from '../Repositories/ticket-tier.repository';
 import { ClientRepository } from '../Repositories/client.repository';
+import { EventRepository } from '../Repositories/event.repository';
+import { TenantConfigRepository } from '../Repositories/tenant-config.repository';
 import { TicketRepository } from '../Repositories/ticket.repository';
 
 import { OrderStatus } from '../models/order.entity';
@@ -23,6 +25,8 @@ export class OrderService {
     private readonly ticketTierRepository: TicketTierRepository,
     private readonly clientRepository: ClientRepository,
     private readonly ticketRepository: TicketRepository,
+    private readonly eventRepository: EventRepository,
+    private readonly tenantConfigRepository: TenantConfigRepository,
     @InjectQueue('reserve-queue') private readonly redisQueue: Queue,
     @InjectQueue('webhook-queue') private readonly webhookQueue: Queue,
     private readonly stripeService: StripeService,
@@ -60,7 +64,22 @@ export class OrderService {
 
       await this.scheduleOrderExpiration(order.id);
 
-      const clientSecret = await this.stripeService.createPaymentIntent(totalAmount, order.id);
+      // Fetch currency config
+      let currency = 'usd';
+      try {
+        if (data.tiers.length > 0) {
+          const firstTier = await this.ticketTierRepository.findById(data.tiers[0].ticketTierId);
+          const event = await this.eventRepository.findByIdPublic(firstTier.eventId);
+          const config = await this.tenantConfigRepository.findByTenant(event.tenantId);
+          if (config && config.currency) {
+            currency = config.currency.toLowerCase();
+          }
+        }
+      } catch (e) {
+         console.warn('Could not fetch currency, falling back to usd');
+      }
+
+      const clientSecret = await this.stripeService.createPaymentIntent(totalAmount, order.id, currency);
 
       return { ...order, clientSecret };
     } catch (error) {

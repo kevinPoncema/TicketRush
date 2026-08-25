@@ -24,13 +24,15 @@ export class TenantConfigRepository {
       if (data.webhookUrl !== undefined) existing.webhookUrl = data.webhookUrl;
       if (data.customDomain !== undefined) existing.customDomain = data.customDomain;
       if (data.brandColor !== undefined) existing.brandColor = data.brandColor;
+      if (data.currency !== undefined) existing.currency = data.currency;
       return this.repository.save(existing);
     } else {
       const newConfig = this.repository.create({ 
         tenantId, 
         webhookUrl: data.webhookUrl,
         customDomain: data.customDomain,
-        brandColor: data.brandColor || '#8b5cf6'
+        brandColor: data.brandColor || '#8b5cf6',
+        currency: data.currency || 'usd'
       });
       return this.repository.save(newConfig);
     }

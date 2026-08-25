@@ -15,6 +15,9 @@ export class TenantConfig {
   @Column({ name: 'brand_color', nullable: true, default: '#8b5cf6' })
   brandColor: string;
 
+  @Column({ default: 'usd' })
+  currency: string;
+
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 

@@ -10,7 +10,8 @@ const saving = ref(false)
 const form = ref({
   webhookUrl: '',
   customDomain: '',
-  brandColor: '#8b5cf6'
+  brandColor: '#8b5cf6',
+  currency: 'usd'
 })
 
 async function loadConfig() {
@@ -27,7 +28,11 @@ async function loadConfig() {
 async function save() {
   saving.value = true
   try {
-    await TenantService.updateConfig(form.value)
+    const payload = { ...form.value }
+    if (!payload.webhookUrl) payload.webhookUrl = null
+    if (!payload.customDomain) payload.customDomain = null
+    if (!payload.currency) payload.currency = 'usd'
+    await TenantService.updateConfig(payload)
     alert('Configuración guardada correctamente')
   } catch (e) {
     alert('Error al guardar la configuración')
@@ -91,6 +96,20 @@ onMounted(() => {
             placeholder="tickets.miproductora.com" 
           />
           
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">Moneda de Cobro (Stripe)</label>
+            <select v-model="form.currency" class="w-full bg-[#131313] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors uppercase">
+              <option value="usd">USD - Dólar Estadounidense</option>
+              <option value="eur">EUR - Euro</option>
+              <option value="mxn">MXN - Peso Mexicano</option>
+              <option value="ars">ARS - Peso Argentino</option>
+              <option value="clp">CLP - Peso Chileno</option>
+              <option value="cop">COP - Peso Colombiano</option>
+              <option value="pen">PEN - Sol Peruano</option>
+              <option value="brl">BRL - Real Brasileño</option>
+            </select>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1">Color Principal de Marca (HEX)</label>
             <div class="flex items-center gap-3">

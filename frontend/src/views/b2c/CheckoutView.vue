@@ -37,6 +37,10 @@ const total = computed(() => {
   return cart.value.tiers.reduce((acc: number, t: any) => acc + (t.price * t.quantity), 0)
 })
 
+const currency = computed(() => {
+  return cart.value?.currency ? cart.value.currency.toUpperCase() : 'USD'
+})
+
 onMounted(() => {
   const pending = localStorage.getItem('pending_checkout')
   if (!pending) {
@@ -73,7 +77,7 @@ async function createOrder() {
 
     const payload = {
       clientName: form.value.clientName,
-      clientEmail: form.value.clientEmail,
+      clientEmail: form.value.clientEmail.trim(),
       tiers: cart.value.tiers.map((t: any) => ({
         ticketTierId: t.tierId,
         quantity: t.quantity
@@ -207,7 +211,7 @@ async function confirmPayment() {
               <div id="payment-element" class="mb-6 min-h-[200px]"></div>
 
               <BaseButton type="submit" variant="primary" :loading="loading" class="w-full py-4 text-lg bg-violet-600 hover:bg-violet-500">
-                Pagar ${{ total.toFixed(2) }} USD
+                Pagar ${{ total.toFixed(2) }} {{ currency }}
               </BaseButton>
             </form>
           </div>
@@ -233,12 +237,12 @@ async function confirmPayment() {
                 <span class="w-6 h-6 bg-gray-800 rounded flex items-center justify-center font-bold text-gray-300 text-xs">{{ item.quantity }}x</span>
                 <span class="text-gray-300">{{ item.name }}</span>
               </div>
-              <span class="font-mono text-gray-400">${{ (item.price * item.quantity).toFixed(2) }}</span>
+              <span class="font-mono text-gray-400">${{ (item.price * item.quantity).toFixed(2) }} {{ currency }}</span>
             </div>
           </div>
           <div class="border-t border-gray-800 pt-4 flex justify-between items-center">
             <span class="font-bold text-gray-400">Total a Pagar</span>
-            <span class="text-2xl font-black text-violet-400">${{ total.toFixed(2) }}</span>
+            <span class="text-2xl font-black text-violet-400">${{ total.toFixed(2) }} {{ currency }}</span>
           </div>
         </div>
       </div>

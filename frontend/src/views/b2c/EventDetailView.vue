@@ -150,7 +150,7 @@ onMounted(() => { loadEvent() })
                   <span class="text-gray-500 ml-1">({{ tier.availableStock }} left)</span>
                 </span>
               </div>
-              <div class="text-3xl font-black text-white">${{ Number(tier.price).toFixed(2) }}</div>
+              <div class="text-3xl font-black text-white">${{ Number(tier.price).toFixed(2) }} {{ event.tenant?.tenantConfig?.currency?.toUpperCase() || 'USD' }}</div>
             </div>
             
             <!-- Selector -->
@@ -183,7 +183,7 @@ onMounted(() => { loadEvent() })
         <div class="max-w-5xl mx-auto bg-violet-600 border border-violet-400/30 rounded-2xl p-5 flex justify-between items-center shadow-[0_0_40px_rgba(139,92,246,0.3)] pointer-events-auto backdrop-blur-lg">
           <div>
             <div class="text-violet-200 text-xs font-bold uppercase tracking-widest mb-1">{{ totalItems }} boletos seleccionados</div>
-            <div class="text-3xl font-black text-white">${{ totalPrice.toFixed(2) }}</div>
+            <div class="text-3xl font-black text-white">${{ totalPrice.toFixed(2) }} {{ event.tenant?.tenantConfig?.currency?.toUpperCase() || 'USD' }}</div>
           </div>
           <button @click="proceedToCheckout" class="bg-white text-black hover:bg-gray-200 font-black px-10 py-4 rounded-xl transition-colors flex items-center gap-3 uppercase tracking-wider text-sm">
             Checkout

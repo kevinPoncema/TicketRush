@@ -41,7 +41,7 @@ export class EventRepository {
   async findByIdPublic(id: string): Promise<Event> {
     const event = await this.repository.findOne({
       where: { id },
-      relations: { ticketTiers: true }
+      relations: { ticketTiers: true, tenant: { tenantConfig: true } }
     });
     if (!event) throw new NotFoundException('Event not found');
     return event;
