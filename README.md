@@ -194,3 +194,25 @@ npm run dev
 
 ---
 *Diseñado como prueba de concepto para arquitecturas de alta concurrencia y despliegues B2B.*
+
+## 🧪 Cómo Ejecutar las Pruebas de Estrés y Concurrencia
+
+Hemos diseñado una suite de tests E2E y de Integración que valida matemáticamente la integridad del motor transaccional previniendo la sobreventa. Para correr las pruebas sin afectar tu base de datos de desarrollo, utilizamos un entorno de pruebas aislado.
+
+Ejecuta el script automatizado (levantará su propio Postgres efímero, correrá los tests en el puerto 5433, y luego destruirá la base de datos):
+
+```bash
+cd backend
+./run-tests.sh
+```
+
+**¿Qué hace esta prueba de fuego (`test/order.e2e-spec.ts`)?**
+1. Crea un evento simulado dejando el inventario en exactamente `1` boleto.
+2. Dispara mediante hilos concurrentes (`Promise.all`) 5 solicitudes simultáneas queriendo comprar ese mismo boleto.
+3. El test valida que PostgreSQL bloquee los intentos paralelos, confirmando 1 transacción exitosa y arrojando "Sold out" para las otras 4. Garantía de *Zero Overselling*.
+
+---
+Documentación adicional:
+- [Arquitectura de Pruebas](docs/testing_architecture.md)
+- [Casos de Uso a Cubrir](docs/test_cases.md)
+- [Manejo de Transacciones](docs/transactions.md)
