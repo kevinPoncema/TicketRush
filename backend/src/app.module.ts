@@ -7,6 +7,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { StripeService } from './services/stripe.service';
 import { JobsModule } from './jobs/jobs.module';
 
 import { Tenant } from './models/tenant.entity';
@@ -34,7 +35,8 @@ import { TenantConfigService } from './services/tenant-config.service';
 import { TicketTierService } from './services/ticket-tier.service';
 import { TicketService } from './services/ticket.service';
 import { OrderService } from './services/order.service';
-import { PdfService } from './services/pdf.service';
+import { PdfService,
+    } from './services/pdf.service';
 
 import { TenantController } from './controllers/tenant.controller';
 import { EventController } from './controllers/event.controller';
@@ -106,7 +108,8 @@ import { RolesGuard } from './guards/roles.guard';
     TicketTierService,
     TicketService,
     OrderService,
-    PdfService
+    PdfService,
+    StripeService
   ],
 })
 export class AppModule implements NestModule {

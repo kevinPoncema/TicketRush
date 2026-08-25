@@ -1,3 +1,4 @@
+import { StripeService } from './stripe.service';
 import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -24,6 +25,7 @@ export class OrderService {
     private readonly ticketRepository: TicketRepository,
     @InjectQueue('reserve-queue') private readonly redisQueue: Queue,
     @InjectQueue('webhook-queue') private readonly webhookQueue: Queue,
+    private readonly stripeService: StripeService,
   ) { }
 
   async createOrder(data: CreateOrderDto, idempotencyKey: string) {
@@ -58,7 +60,9 @@ export class OrderService {
 
       await this.scheduleOrderExpiration(order.id);
 
-      return order;
+      const clientSecret = await this.stripeService.createPaymentIntent(totalAmount, order.id);
+
+      return { ...order, clientSecret };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
@@ -145,7 +149,7 @@ export class OrderService {
         throw new BadRequestException(`Cannot process payment: Order is already ${order.status}`);
       }
 
-      const isSuccess = Math.random() < 0.85;
+      const isSuccess = true; // Cuando Stripe llama al webhook o frontend confirma, asumimos exito
 
       if (isSuccess) {
         order.status = OrderStatus.PAID;
