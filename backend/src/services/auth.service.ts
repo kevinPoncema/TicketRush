@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
@@ -12,9 +12,8 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
-  // 1. Registro Público: Crea Tenant + Usuario Owner
   async registerTenant(data: any) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -29,6 +28,7 @@ export class AuthService {
       const tenant = new Tenant();
       tenant.name = data.tenantName;
       const savedTenant = await queryRunner.manager.save(tenant);
+
       const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash(data.userPassword, salt);
 
@@ -38,7 +38,7 @@ export class AuthService {
       user.email = data.userEmail;
       user.password = hashedPassword;
       user.role = UserRole.ADMIN;
-
+      
       const savedUser = await queryRunner.manager.save(user);
 
       await queryRunner.commitTransaction();
@@ -67,20 +67,16 @@ export class AuthService {
   }
 
   async createMember(adminUser: any, data: any) {
-    if (adminUser.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Only administrators can create users');
-    }
-
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(data.password, salt);
-
+    
     const user = await this.userRepository.create({
       ...data,
       password: hashedPassword,
       tenantId: adminUser.tenantId, // Forzar que sea del mismo tenant
       role: data.role || UserRole.STAFF
     });
-
+    
     const { password, ...result } = user;
     return result;
   }

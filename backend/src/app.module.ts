@@ -1,4 +1,5 @@
 import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { BullModule } from '@nestjs/bullmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
@@ -35,6 +36,7 @@ import { TenantConfigController } from './controllers/tenant-config.controller';
 import { TicketTierController } from './controllers/ticket-tier.controller';
 
 import { AuthMiddleware } from './middlewares/auth.middleware';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
@@ -69,6 +71,10 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
     TicketTierController
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
     AppService,
     TenantRepository,
     EventRepository,
