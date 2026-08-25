@@ -102,6 +102,7 @@ async function processPayment() {
     if (!processRes.ok) {
        throw new Error('Error al procesar el pago');
     }
+    // El proceso de pago ahora devuelve la orden completa con sus firmas generadas:
     const finalOrder = await processRes.json();
     
     // Adaptar para la vista success

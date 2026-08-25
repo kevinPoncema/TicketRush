@@ -120,7 +120,10 @@ export class AppModule implements NestModule {
         { path: 'events/:id', method: RequestMethod.GET },
         { path: 'ticket-tiers/event/(.*)', method: RequestMethod.GET },
         { path: 'orders', method: RequestMethod.POST },
+        { path: 'orders/recover', method: RequestMethod.POST },
+        { path: 'orders/:id/process-payment', method: RequestMethod.POST },
         { path: 'orders/:id/cancel', method: RequestMethod.POST },
+        { path: 'orders/:id/pdf', method: RequestMethod.GET },
         { path: 'api/docs/*path', method: RequestMethod.GET }
       )
       .forRoutes('*');

@@ -162,7 +162,7 @@ export class OrderService {
         // Enviar evento asíncrono para notificar por Webhook
         await this.webhookQueue.add('send-webhook', { orderId: order.id });
 
-        return { success: true, orderStatus: OrderStatus.PAID };
+        return order;
       } else {
         order.status = OrderStatus.FAILED;
         await queryRunner.manager.save(order);

@@ -12,15 +12,7 @@ const loading = ref(true)
 
 const currentTicketIndex = ref(0)
 const flattenedTickets = computed(() => {
-  if (!order.value?.tickets) return []
-  const list: any[] = []
-  order.value.tickets.forEach((t: any) => {
-    const qty = t.quantity || 1
-    for (let i = 0; i < qty; i++) {
-      list.push({ ...t, ticketNumber: i + 1 })
-    }
-  })
-  return list
+  return order.value?.tickets || []
 })
 
 async function fetchOrder() {
@@ -110,16 +102,17 @@ onMounted(() => { fetchOrder() })
 
         <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transform transition-all duration-300">
           <div class="bg-violet-600 p-6 text-center text-white">
-            <h2 class="text-xl font-black uppercase tracking-wider">{{ flattenedTickets[currentTicketIndex]?.name }}</h2>
-            <p class="text-violet-200 text-xs mt-1 font-mono opacity-80">Boleto #{{ flattenedTickets[currentTicketIndex]?.ticketNumber }}</p>
+            <h2 class="text-xl font-black uppercase tracking-wider">Entrada</h2>
+            <p class="text-violet-200 text-xs mt-1 font-mono opacity-80">Boleto #{{ currentTicketIndex + 1 }}</p>
           </div>
           <div class="p-8 flex flex-col items-center bg-gray-50">
             <div class="w-48 h-48 bg-white border-4 border-white shadow-sm rounded-lg overflow-hidden flex items-center justify-center mb-6">
-              <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${(order.id || order.orderId)}-${currentTicketIndex}`" alt="QR Code" class="w-full h-full object-contain" />
+              <img v-if="flattenedTickets[currentTicketIndex]?.signature" :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${flattenedTickets[currentTicketIndex]?.signature}`" alt="QR Code" class="w-full h-full object-contain" />
+              <div v-else class="text-gray-400 text-xs text-center">QR pendiente</div>
             </div>
             <div class="w-full border-t-2 border-dashed border-gray-300 my-2"></div>
-            <p class="text-xs text-gray-400 font-mono text-center mt-4 uppercase">ID: {{ (order.id || order.orderId) }}-{{ currentTicketIndex }}</p>
-            <p class="text-[10px] text-gray-400 text-center mt-1 uppercase font-bold">VANTAGE Ticketing</p>
+            <p class="text-xs text-gray-400 font-mono text-center mt-4 uppercase">ID: {{ flattenedTickets[currentTicketIndex]?.id?.split('-')[0] }}</p>
+            <p class="text-[10px] text-gray-400 text-center mt-1 uppercase font-bold">TicketRush</p>
           </div>
         </div>
 
