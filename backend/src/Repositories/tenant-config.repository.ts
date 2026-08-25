@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TenantConfig } from '../models/tenant-config.entity';
+import { UpsertTenantConfigDto } from '../dtos/tenant-config.dto';
 
 @Injectable()
 export class TenantConfigRepository {
@@ -16,14 +17,21 @@ export class TenantConfigRepository {
     return config;
   }
 
-  async upsert(tenantId: string, webhookUrl: string): Promise<TenantConfig> {
+  async upsert(tenantId: string, data: UpsertTenantConfigDto): Promise<TenantConfig> {
     const existing = await this.repository.findOne({ where: { tenantId } });
     
     if (existing) {
-      existing.webhookUrl = webhookUrl;
+      if (data.webhookUrl !== undefined) existing.webhookUrl = data.webhookUrl;
+      if (data.customDomain !== undefined) existing.customDomain = data.customDomain;
+      if (data.brandColor !== undefined) existing.brandColor = data.brandColor;
       return this.repository.save(existing);
     } else {
-      const newConfig = this.repository.create({ tenantId, webhookUrl });
+      const newConfig = this.repository.create({ 
+        tenantId, 
+        webhookUrl: data.webhookUrl,
+        customDomain: data.customDomain,
+        brandColor: data.brandColor || '#8b5cf6'
+      });
       return this.repository.save(newConfig);
     }
   }

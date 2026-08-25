@@ -9,6 +9,12 @@ export class TenantConfig {
   @Column({ name: 'webhook_url', nullable: true })
   webhookUrl: string;
 
+  @Column({ name: 'custom_domain', nullable: true })
+  customDomain: string;
+
+  @Column({ name: 'brand_color', nullable: true, default: '#8b5cf6' })
+  brandColor: string;
+
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 

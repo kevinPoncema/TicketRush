@@ -30,3 +30,7 @@ Define **cómo** el sistema debe comportarse a nivel de arquitectura, rendimient
 *   **RNF5 - Arquitectura Desacoplada:** El sistema operará bajo una arquitectura Cliente-Servidor separada. El Backend será una API RESTful construida con NestJS y TypeORM, y el Frontend será una SPA (Single Page Application) consumidora construida en Vue 3.
 *   **RNF6 - Interfaz de Usuario:** El diseño del cliente y panel administrativo debe ser minimalista, optimizado nativamente para Modo Oscuro (Dark Mode), y el módulo de escáner en puerta debe ser *Mobile-First*.
 *   **RNF7 - Optimización de Infraestructura (Sin Correos / Sin Almacenamiento S3):** Para minimizar costos operativos del MVP, el sistema no usará servicios SMTP para el envío de boletos. La recuperación visual dependerá del caché del cliente (`localStorage`) o del endpoint de rescate mediante PIN. Los documentos PDF no se guardarán en disco; serán generados "al vuelo" a partir de la BD (StreamableFile).
+## RF9 - Personalización B2B (White-Label)
+El sistema permite que las organizaciones (Tenants) personalicen su portal de ventas.
+- Los administradores pueden establecer un color de marca (`brandColor`) y un dominio personalizado (`customDomain`).
+- Estos datos se persisten en una tabla `tenant_configs` relacionada uno-a-uno con el `Tenant`.

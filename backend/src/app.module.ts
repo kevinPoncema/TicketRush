@@ -121,7 +121,7 @@ export class AppModule implements NestModule {
         { path: 'ticket-tiers/event/(.*)', method: RequestMethod.GET },
         { path: 'orders', method: RequestMethod.POST },
         { path: 'orders/:id/cancel', method: RequestMethod.POST },
-        { path: 'api/docs(.*)', method: RequestMethod.GET }
+        { path: 'api/docs/*path', method: RequestMethod.GET }
       )
       .forRoutes('*');
   }
