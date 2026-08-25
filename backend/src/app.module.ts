@@ -31,6 +31,7 @@ import { EventService } from './services/event.service';
 import { AuthService } from './services/auth.service';
 import { TenantConfigService } from './services/tenant-config.service';
 import { TicketTierService } from './services/ticket-tier.service';
+import { TicketService } from './services/ticket.service';
 import { OrderService } from './services/order.service';
 
 import { TenantController } from './controllers/tenant.controller';
@@ -38,6 +39,7 @@ import { EventController } from './controllers/event.controller';
 import { AuthController } from './controllers/auth.controller';
 import { TenantConfigController } from './controllers/tenant-config.controller';
 import { TicketTierController } from './controllers/ticket-tier.controller';
+import { TicketController } from './controllers/ticket.controller';
 import { OrderController } from './controllers/order.controller';
 
 import { AuthMiddleware } from './middlewares/auth.middleware';
@@ -74,6 +76,7 @@ import { RolesGuard } from './guards/roles.guard';
     EventController, 
     TenantConfigController,
     TicketTierController,
+    TicketController,
     OrderController
   ],
   providers: [
@@ -95,6 +98,7 @@ import { RolesGuard } from './guards/roles.guard';
     AuthService,
     TenantConfigService,
     TicketTierService,
+    TicketService,
     OrderService
   ],
 })
