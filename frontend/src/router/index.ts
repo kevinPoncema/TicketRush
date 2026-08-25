@@ -36,10 +36,22 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true },
       children: [
         
+        
+        
+        {
+          path: '',
+          name: 'b2b-home',
+          component: () => import('../views/b2b/DashboardHomeView.vue')
+        },
         {
           path: 'staff',
           name: 'staff-manager',
           component: () => import('../views/b2b/StaffManagerView.vue')
+        },
+        {
+          path: 'integrations',
+          name: 'integrations',
+          component: () => import('../views/b2b/IntegrationsView.vue')
         },
         
         {
