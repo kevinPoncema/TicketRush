@@ -13,6 +13,9 @@ export class TicketTier {
   @Column()
   name: string;
 
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 

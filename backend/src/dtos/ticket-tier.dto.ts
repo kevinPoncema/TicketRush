@@ -10,6 +10,11 @@ export class CreateTicketTierDto {
   @IsString()
   name: string;
 
+  @ApiProperty({ required: false, example: 'Acceso anticipado y merch.' })
+  @IsString()
+  @IsOptional()
+  description?: string;
+
   @ApiProperty({ example: 100.50 })
   @IsNumber()
   @Min(0)
@@ -31,6 +36,11 @@ export class UpdateTicketTierDto {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  description?: string;
 
   @ApiProperty({ required: false })
   @IsNumber()
