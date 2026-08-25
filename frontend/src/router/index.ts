@@ -4,10 +4,16 @@ import { useAuthStore } from '../stores/auth.store'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    
     {
       path: '/',
       name: 'landing',
       component: () => import('../views/b2c/LandingView.vue')
+    },
+    {
+      path: '/e/:id',
+      name: 'event-detail',
+      component: () => import('../views/b2c/EventDetailView.vue')
     },
     {
       path: '/checkout',

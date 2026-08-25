@@ -103,9 +103,14 @@ onMounted(() => {
               </div>
             </td>
             <td class="px-6 py-5 text-right">
-              <button @click.stop="router.push(`/b2b/events/${event.id}/edit`)" class="text-sm font-semibold text-violet-400 hover:text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 px-4 py-2 rounded-lg transition-colors">
-                Gestionar
-              </button>
+              <div class="flex justify-end gap-2">
+                <a @click.stop :href="`/e/${event.id}`" target="_blank" class="text-sm font-semibold text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center gap-1">
+                  Tienda <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+                <button @click.stop="router.push(`/b2b/events/${event.id}/edit`)" class="text-sm font-semibold text-violet-400 hover:text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 px-4 py-2 rounded-lg transition-colors">
+                  Gestionar
+                </button>
+              </div>
             </td>
           </tr>
           <tr v-if="events.length === 0">
