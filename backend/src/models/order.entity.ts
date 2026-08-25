@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Client } from './client.entity';
 import { Ticket } from './ticket.entity';
 
@@ -18,6 +19,10 @@ export class Order {
 
   @Column('decimal', { name: 'total_amount', precision: 10, scale: 2 })
   totalAmount: number;
+
+  @Column({ name: 'access_pin', type: 'varchar', length: 10, nullable: true })
+  @Exclude()
+  accessPin: string;
 
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
   status: OrderStatus;

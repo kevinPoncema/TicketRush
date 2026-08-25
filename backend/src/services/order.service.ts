@@ -3,6 +3,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import * as crypto from 'crypto';
+import { NotFoundException } from '@nestjs/common';
 
 import { OrderRepository } from '../Repositories/order.repository';
 import { TicketTierRepository } from '../Repositories/ticket-tier.repository';
@@ -50,6 +51,8 @@ export class OrderService {
       const { totalAmount, ticketsToCreate } = await this.processTiersSequentially(data.tiers, queryRunner.manager);
 
       const order = await this.saveOrderAndTickets(client.id, totalAmount, ticketsToCreate, idempotencyKey, queryRunner.manager);
+      order.accessPin = crypto.randomBytes(3).toString('hex').toUpperCase(); // Ej: A1B2C3
+      await queryRunner.manager.save(order);
 
       await queryRunner.commitTransaction();
 
@@ -212,5 +215,12 @@ export class OrderService {
     } finally {
       await queryRunner.release();
     }
+  }
+  async recoverOrder(email: string, accessPin: string) {
+    const order = await this.orderRepository.findRecoverableOrder(email, accessPin);
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada o PIN incorrecto');
+    }
+    return order;
   }
 }

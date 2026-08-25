@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { BullModule } from '@nestjs/bullmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -33,6 +34,7 @@ import { TenantConfigService } from './services/tenant-config.service';
 import { TicketTierService } from './services/ticket-tier.service';
 import { TicketService } from './services/ticket.service';
 import { OrderService } from './services/order.service';
+import { PdfService } from './services/pdf.service';
 
 import { TenantController } from './controllers/tenant.controller';
 import { EventController } from './controllers/event.controller';
@@ -71,6 +73,7 @@ import { RolesGuard } from './guards/roles.guard';
       signOptions: { expiresIn: '1d' },
     }),
     JobsModule,
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 5 }]),
   ],
   controllers: [
     AppController,
@@ -102,7 +105,8 @@ import { RolesGuard } from './guards/roles.guard';
     TenantConfigService,
     TicketTierService,
     TicketService,
-    OrderService
+    OrderService,
+    PdfService
   ],
 })
 export class AppModule implements NestModule {

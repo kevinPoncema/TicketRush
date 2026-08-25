@@ -65,5 +65,15 @@ export class OrderRepository {
     if (!order) throw new NotFoundException('Order not found');
     return order;
   }
-}
 
+  async findRecoverableOrder(email: string, accessPin: string): Promise<Order | null> {
+    const repo = this.getRepo();
+    return repo.findOne({
+      where: { accessPin, client: { email } },
+      relations: {
+        client: true,
+        tickets: { ticketTier: { event: true } }
+      }
+    });
+  }
+}
