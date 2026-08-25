@@ -73,10 +73,10 @@ import { RolesGuard } from './guards/roles.guard';
     JobsModule,
   ],
   controllers: [
-    AppController, 
-    AuthController, 
-    TenantController, 
-    EventController, 
+    AppController,
+    AuthController,
+    TenantController,
+    EventController,
     TenantConfigController,
     TicketTierController,
     TicketController,
@@ -116,7 +116,8 @@ export class AppModule implements NestModule {
         { path: 'events/:id', method: RequestMethod.GET },
         { path: 'ticket-tiers/event/(.*)', method: RequestMethod.GET },
         { path: 'orders', method: RequestMethod.POST },
-        { path: 'orders/:id/cancel', method: RequestMethod.POST }
+        { path: 'orders/:id/cancel', method: RequestMethod.POST },
+        { path: 'api/docs(.*)', method: RequestMethod.GET }
       )
       .forRoutes('*');
   }

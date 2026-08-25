@@ -56,7 +56,7 @@ describe('OrderService - Concurrency & Race Conditions (e2e)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    if (app) await app.close();
   });
 
   it('debería evitar la sobreventa cuando 5 usuarios compran el último boleto a la vez', async () => {
