@@ -37,7 +37,7 @@ async function createMember() {
 function deleteMember(id: string) {
   // El backend no implementa DELETE /auth/member/:id todavía.
   // Ver docs/pendiente.md para detalles.
-  alert('La eliminación de miembros estará disponible próximamente.')
+  try { await AuthService.deleteMember(id); await fetchMembers(); } catch (e) { alert('Error al eliminar'); }
 }
 
 onMounted(() => {

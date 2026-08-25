@@ -9,14 +9,14 @@
 
 ## 🔴 Críticos (bloquean funcionalidad real)
 
-### 1. `GET /auth/members` — Listado de Staff No Existe
+### 1. (Resuelto) `GET /auth/members`
 - **Archivo:** [`src/views/b2b/StaffManagerView.vue`](../frontend/src/views/b2b/StaffManagerView.vue)
 - **Servicio:** [`src/services/auth.service.ts`](../frontend/src/services/auth.service.ts) → `listMembers()`
 - **Comportamiento actual:** Devuelve un array vacío `[]` siempre. La tabla de miembros aparece vacía con un mensaje explicativo.
 - **Lo que falta en el backend:** Implementar `GET /auth/members` (protegido por ADMIN) que devuelva los usuarios del tenant.
 - **Impacto:** El organizador no puede ver su lista de staff desde el panel.
 
-### 2. `DELETE /auth/member/:id` — Eliminar Staff No Existe
+### 2. (Resuelto) `DELETE /auth/member/:id`
 - **Archivo:** [`src/views/b2b/StaffManagerView.vue`](../frontend/src/views/b2b/StaffManagerView.vue)
 - **Comportamiento actual:** Muestra un alert de "próximamente" al hacer clic en Eliminar.
 - **Lo que falta en el backend:** Implementar `DELETE /auth/member/:id` (protegido por ADMIN).
@@ -50,7 +50,7 @@
 - **Lo que falta:** El backend podría exponer `GET /public/tenant/:tenantId/info` con `{ name, logoUrl, brandColor }` para personalizar la landing pública.
 - **Impacto:** Las landings de organizaciones muestran el tenantId formateado en lugar del nombre real de la productora.
 
-### 7. Imagen de Portada de Eventos — Hardcodeada (Unsplash)
+### 7. (Resuelto) Imagen de Portada de Eventos
 - **Archivos:** 
   - [`src/views/b2c/OrgLandingView.vue`](../frontend/src/views/b2c/OrgLandingView.vue)
   - [`src/views/b2c/EventDetailView.vue`](../frontend/src/views/b2c/EventDetailView.vue)

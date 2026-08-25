@@ -91,7 +91,7 @@ onMounted(() => { loadEvent() })
     <div v-else-if="event" class="pb-32 pt-16">
       <!-- Hero -->
       <div class="relative h-[60vh] min-h-[400px] w-full bg-black overflow-hidden flex items-end">
-        <img src="https://images.unsplash.com/photo-1559223607-a43c990c692c?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80" class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen" alt="Event Banner">
+        <img :src="event?.bannerUrl || 'https://images.unsplash.com/photo-1559223607-a43c990c692c?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80'" class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen" alt="Event Banner">
         <div class="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent z-10"></div>
         <div class="relative z-20 w-full max-w-5xl mx-auto px-6 pb-16">
           <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full mb-6">

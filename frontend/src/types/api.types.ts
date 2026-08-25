@@ -36,6 +36,7 @@ export interface Event {
   name: string;
   date: string;
   location: string;
+  bannerUrl?: string;
   ticketTiers: TicketTier[]
 }
 

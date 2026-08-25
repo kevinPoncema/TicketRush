@@ -120,7 +120,7 @@ function scarcityLabel(tiers: any[]) {
             <!-- Tapa del evento -->
             <div class="relative h-44 bg-black overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
+                :src="event.bannerUrl || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60'"
                 class="w-full h-full object-cover opacity-30 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
                 alt=""
               />

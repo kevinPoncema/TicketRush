@@ -15,7 +15,8 @@ const form = ref({
   id: '',
   name: '',
   date: '',
-  location: ''
+  location: '',
+  bannerUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60'
 })
 
 const tiers = ref([
@@ -35,7 +36,7 @@ function removeTier(index: number) {
 async function loadEvent(id: string) {
   try {
     const data: any = await EventService.getEvent(id)
-    form.value = { id: data.id, name: data.name, date: data.date?.slice(0, 16) ?? '', location: data.location }
+    form.value = { id: data.id, name: data.name, date: data.date?.slice(0, 16) ?? '', location: data.location, bannerUrl: data.bannerUrl || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60' }
     // La API real usa ticketTiers
     const apiTiers = data.ticketTiers || data.tiers || []
     tiers.value = apiTiers.map((t: any) => ({
@@ -96,6 +97,9 @@ onMounted(() => {
           <BaseInput label="Fecha y Hora" type="datetime-local" v-model="form.date" required />
           <div class="md:col-span-2">
             <BaseInput label="Ubicación" v-model="form.location" required placeholder="Estadio Nacional, Neo-Tokyo" />
+          </div>
+          <div class="md:col-span-2">
+            <BaseInput label="URL del Banner" v-model="form.bannerUrl" placeholder="https://..." />
           </div>
         </div>
       </div>

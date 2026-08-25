@@ -14,6 +14,10 @@ export const AuthService = {
     return api.post('/auth/create-member', data)
   },
 
+  async deleteMember(memberId: string) {
+    return api.delete(`/auth/member/${memberId}`)
+  },
+
   async listMembers() {
     // El backend aún no tiene este endpoint: GET /auth/members
     // Por ahora devolvemos array vacío para no romper la UI
