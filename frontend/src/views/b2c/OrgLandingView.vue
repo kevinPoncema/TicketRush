@@ -24,7 +24,7 @@ const limit = 6
 async function loadStoreEvents(page = 1) {
   loading.value = true
   try {
-    const res = await fetch(`${BASE_URL}/events/store/${tenantId}?page=${page}&limit=${limit}&status=${currentTab.value}`)
+    const res = await fetch(`${BASE_URL}/public/tenants/${tenantId}/events?page=${page}&limit=${limit}&status=${currentTab.value}`)
     if (!res.ok) throw new Error('No se pudieron cargar los eventos.')
     const data = await res.json()
     events.value = data.data
@@ -57,7 +57,7 @@ onMounted(async () => {
   }
   
   try {
-    const tenantRes = await fetch(`${BASE_URL}/public/tenant/${tenantId}/info`)
+    const tenantRes = await fetch(`${BASE_URL}/public/tenants/${tenantId}`)
     if (tenantRes.ok) {
       tenantInfo.value = await tenantRes.json()
       document.title = `${tenantInfo.value.name} | Eventos`

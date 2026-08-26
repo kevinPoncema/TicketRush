@@ -23,16 +23,6 @@ export class EventController {
     return this.eventService.getEventsByTenant(tenantId);
   }
 
-  @ApiOperation({ summary: 'List paginated public store events for a tenant' })
-  @Get('store/:tenantId')
-  findStoreEvents(
-    @Param('tenantId') tenantId: string,
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('status') status: 'upcoming' | 'past' = 'upcoming'
-  ) {
-    return this.eventService.getPublicEvents(tenantId, parseInt(page), parseInt(limit), status);
-  }
 
   @ApiOperation({ summary: 'Get a single event with its ticket tiers (Public)' })
   @Get(':id')
