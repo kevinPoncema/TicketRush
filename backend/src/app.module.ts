@@ -48,6 +48,8 @@ import { TicketTierController } from './controllers/ticket-tier.controller';
 import { TicketController } from './controllers/ticket.controller';
 import { OrderController } from './controllers/order.controller';
 import { PublicController } from './controllers/public.controller';
+import { UploadController } from './controllers/upload.controller';
+import { UploadService } from './services/upload.service';
 
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { RolesGuard } from './guards/roles.guard';
@@ -115,7 +117,8 @@ import { RolesGuard } from './guards/roles.guard';
     TicketService,
     OrderService,
     PdfService,
-    StripeService
+    StripeService,
+    UploadService
   ],
 })
 export class AppModule implements NestModule {

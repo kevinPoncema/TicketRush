@@ -24,4 +24,10 @@ export class UpsertTenantConfigDto {
   @IsString()
   @IsOptional()
   currency?: string;
+
+  @ApiProperty({ example: 'https://mi-dominio.com/logo.png', required: false })
+  @ValidateIf(o => o.logoUrl !== undefined && o.logoUrl !== null && o.logoUrl.trim() !== '')
+  @IsUrl({}, { message: 'Must be a valid URL for the logo' })
+  @IsOptional()
+  logoUrl?: string;
 }

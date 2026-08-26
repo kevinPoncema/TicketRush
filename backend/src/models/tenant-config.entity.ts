@@ -18,6 +18,9 @@ export class TenantConfig {
   @Column({ default: 'usd' })
   currency: string;
 
+  @Column({ name: 'logo_url', nullable: true })
+  logoUrl: string;
+
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 

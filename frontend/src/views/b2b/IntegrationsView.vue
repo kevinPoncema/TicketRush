@@ -6,12 +6,44 @@ import { TenantService } from '../../services/tenant.service'
 
 const loading = ref(true)
 const saving = ref(false)
+const uploading = ref(false)
+
+async function handleLogoUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (!input.files || input.files.length === 0) return
+  
+  uploading.value = true
+  const formData = new FormData()
+  formData.append('file', input.files[0])
+  
+  try {
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+    const token = localStorage.getItem('access_token')
+    
+    const response = await fetch(`${BASE_URL}/upload/image?entity=tenant`, {
+      method: 'POST',
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: formData
+    })
+    
+    if (!response.ok) throw new Error('Error subiendo imagen')
+    const data = await response.json()
+    form.value.logoUrl = data.url
+  } catch(e) {
+    alert('Fallo al subir el logo al servidor')
+  } finally {
+    uploading.value = false
+    input.value = ''
+  }
+}
+
 
 const form = ref({
   webhookUrl: '',
   customDomain: '',
   brandColor: '#8b5cf6',
-  currency: 'usd'
+  currency: 'usd',
+  logoUrl: ''
 })
 
 async function loadConfig() {
