@@ -26,7 +26,6 @@ services:
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
-      - /usr/src/app/dist
     env_file:
       - ./backend/.env
     environment:
