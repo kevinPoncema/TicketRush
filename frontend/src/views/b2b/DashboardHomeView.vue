@@ -77,7 +77,7 @@ onMounted(() => {
     </div>
 
     <!-- Analytics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
       <div class="bg-[#141414] border border-gray-800 rounded-xl p-6 relative overflow-hidden">
         <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TOTAL SOLD</h3>
         <div class="text-5xl font-black text-white mb-2">{{ summary.ticketsSold.toLocaleString() }}</div>
@@ -102,14 +102,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="bg-[#141414] border border-gray-800 rounded-xl p-6 relative overflow-hidden">
-        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">ACTIVE EVENTS</h3>
-        <div class="text-5xl font-black text-white mb-2">{{ summary.activeEvents.toString().padStart(2, '0') }}</div>
-        <div class="text-sm font-semibold text-gray-400">Stable capacity</div>
-        <div class="absolute top-6 right-6 opacity-20">
-          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        </div>
-      </div>
+
     </div>
 
     <!-- Chart Section -->

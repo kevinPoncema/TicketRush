@@ -94,6 +94,11 @@ const router = createRouter({
           component: () => import('../views/b2b/EventEditorView.vue')
         },
         {
+          path: 'events/:id/analytics',
+          name: 'b2b-event-analytics',
+          component: () => import('../views/b2b/EventAnalyticsView.vue')
+        },
+        {
           path: 'events/:id/edit',
           name: 'event-edit',
           component: () => import('../views/b2b/EventEditorView.vue')

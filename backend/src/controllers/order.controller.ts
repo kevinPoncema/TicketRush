@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Param, Headers, BadRequestException, Get, Query, StreamableFile, Res, UseGuards, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiHeader } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { OrderService } from '../services/order.service';
 import { PdfService } from '../services/pdf.service';
 import { CreateOrderDto } from '../dtos/order.dto';
@@ -30,6 +30,7 @@ export class OrderController {
   @Post('recover')
   @HttpCode(200)
   @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async recoverOrder(@Body() body: { email: string; accessPin: string }) {
     return this.orderService.recoverOrder(body.email, body.accessPin);
   }
