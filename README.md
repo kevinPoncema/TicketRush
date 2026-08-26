@@ -1,4 +1,4 @@
-# 🎟️ TicketRush - B2B Ticketing & Reservation Engine
+# 🎟️ TicketRush - B2B Ticketing & Reservation Engine (MVP FINALIZADO)
 
 TicketRush es una plataforma SaaS B2B de gestión de eventos y venta de entradas. Más allá de un simple CRUD, el proyecto fue diseñado como un motor transaccional de alto rendimiento para resolver los problemas reales de la industria del ticketing: concurrencia masiva, sobreventa de inventario, reservas temporales y validación criptográfica en puerta.
 
@@ -40,6 +40,7 @@ El proyecto utiliza un enfoque agnóstico en su base de datos, pero se apoya en 
 - **Vue 3 (Composition API)**: Interfaz de usuario reactiva.
 - **Vite**: Herramienta de construcción (Bundler).
 - **Tailwind CSS**: Diseño UI utilitario y responsivo.
+- **ApexCharts & qrcode.vue**: Gráficas analíticas B2B y escaneo/generación nativa de QR criptográficos.
 
 ## 🏗️ Estructura del Proyecto
 
@@ -57,9 +58,9 @@ ticketrush/
 │   │   ├── controllers/      # Capa de Presentación (Endpoints HTTP)
 │   │   ├── dtos/             # Objetos de Transferencia de Datos (Validación de esquemas)
 │   │   ├── services/         # Capa de Lógica de Negocio (Reglas comerciales y orquestación)
-│   │   ├── repositories/     # Capa de Acceso a Datos (Aislamiento de Prisma y SQL crudo)
+│   │   ├── repositories/     # Capa de Acceso a Datos (Aislamiento de TypeORM y SQL crudo)
 │   │   ├── jobs/             # Capa Asíncrona (Processors de BullMQ para colas de Redis)
-│   │   └── infrastructure/   # Conexiones externas (PrismaService, configuración de Redis)
+│   │   └── infrastructure/   # Conexiones externas (TypeORM config, configuración de Redis)
 │   │
 │
 └── docker-compose.yml        # Orquestación local (Servidor SQL + Redis)

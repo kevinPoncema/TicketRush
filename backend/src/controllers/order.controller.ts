@@ -27,6 +27,7 @@ export class OrderController {
     return this.orderService.createOrder(data, idempotencyKey);
   }
 
+  @ApiOperation({ summary: 'Recover order details using email and PIN' })
   @Post('recover')
   @HttpCode(200)
   @UseGuards(ThrottlerGuard)
@@ -35,6 +36,7 @@ export class OrderController {
     return this.orderService.recoverOrder(body.email, body.accessPin);
   }
 
+  @ApiOperation({ summary: 'Recover order via multi-device cloud URL' })
   @Get(':id')
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -50,6 +52,7 @@ export class OrderController {
     return order;
   }
 
+  @ApiOperation({ summary: 'Download order tickets as a PDF' })
   @Get(':id/pdf')
   @UseGuards(ThrottlerGuard)
   async downloadPdf(
