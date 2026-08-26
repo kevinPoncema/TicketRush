@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '../../stores/auth.store'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
 const event = ref<any>(null)
 const loading = ref(true)
@@ -74,8 +76,23 @@ onMounted(() => { loadEvent() })
     
     <!-- Navbar simplificado -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-[#0d0d0d]/80 backdrop-blur-md border-b border-gray-800">
-      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div class="text-xl font-black tracking-widest uppercase">VANTAGE</div>
+      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between relative">
+        <div class="flex items-center gap-4">
+          <button 
+            v-if="event" 
+            @click="authStore.isAuthenticated && authStore.user?.tenantId === event.tenantId ? router.push('/b2b') : router.push('/org/' + event.tenantId)"
+            class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm font-bold bg-[#1a1a1a] hover:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-800"
+            :title="authStore.isAuthenticated && authStore.user?.tenantId === event.tenantId ? 'Volver al Dashboard' : 'Volver a la Tienda'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <span class="hidden sm:inline">{{ authStore.isAuthenticated && authStore.user?.tenantId === event.tenantId ? 'Dashboard B2B' : 'Tienda General' }}</span>
+          </button>
+        </div>
+        
+        <div class="text-xl font-black tracking-widest uppercase absolute left-1/2 -translate-x-1/2">VANTAGE</div>
+        
+        <!-- Placeholder for right side to maintain centering -->
+        <div class="w-20"></div>
       </div>
     </header>
 
