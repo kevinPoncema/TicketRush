@@ -77,7 +77,7 @@ onMounted(() => {
         <tbody class="divide-y divide-gray-800">
           <tr v-for="member in members" :key="member.id" class="hover:bg-gray-800/20 transition-colors">
             <td class="px-6 py-4">
-              <div class="font-medium">{{ member.name }}</div>
+              <div class="font-medium">{{ member.email.split("@")[0] }}</div>
               <div class="text-xs text-gray-500 font-mono mt-0.5">{{ member.email }}</div>
               <div class="text-xs text-gray-500 font-mono mt-0.5">ID: {{ member.id }}</div>
             </td>

@@ -135,20 +135,21 @@ onMounted(() => { loadEvent() })
                   <div 
                     class="h-full rounded-full transition-all duration-1000" 
                     :class="[
-                      tier.availableStock <= 20 ? 'bg-red-500 w-1/4' : 
-                      tier.availableStock <= 50 ? 'bg-orange-500 w-2/4' : 'bg-green-500 w-3/4'
+                      (tier.availableStock / tier.capacity) <= 0.2 ? 'bg-red-500' : 
+                      (tier.availableStock / tier.capacity) <= 0.5 ? 'bg-orange-500' : 'bg-green-500'
                     ]"
+                    :style="`width: ${Math.max(5, (tier.availableStock / tier.capacity) * 100)}%`"
                   ></div>
                 </div>
                 <span 
                   class="text-xs font-bold uppercase tracking-wider"
                   :class="[
-                    tier.availableStock <= 20 ? 'text-red-400 animate-pulse' : 
-                    tier.availableStock <= 50 ? 'text-orange-400' : 'text-green-400'
+                    (tier.availableStock / tier.capacity) <= 0.2 ? 'text-red-400 animate-pulse' : 
+                    (tier.availableStock / tier.capacity) <= 0.5 ? 'text-orange-400' : 'text-green-400'
                   ]"
                 >
-                  {{ tier.availableStock <= 20 ? '¡Casi Agotado!' : tier.availableStock <= 50 ? 'Últimos Cupos' : 'Disponible' }} 
-                  <span class="text-gray-500 ml-1">({{ tier.availableStock }} left)</span>
+                  {{ (tier.availableStock / tier.capacity) <= 0.2 ? '¡Casi Agotado!' : (tier.availableStock / tier.capacity) <= 0.5 ? 'Últimos Cupos' : 'Disponible' }} 
+                  <span class="text-gray-500 ml-1">({{ tier.availableStock }}/{{ tier.capacity }} left)</span>
                 </span>
               </div>
               <div class="text-3xl font-black text-white">${{ Number(tier.price).toFixed(2) }} {{ event.tenant?.tenantConfig?.currency?.toUpperCase() || 'USD' }}</div>

@@ -11,7 +11,7 @@ const tenantId = route.params.tenantId as string
 const events = ref<any[]>([])
 const loading = ref(true)
 const errorMsg = ref('')
-const orgName = ref(tenantId.replace(/-/g, ' ').toUpperCase())
+const tenantInfo = ref<any>({ name: tenantId.replace(/-/g, ' ').toUpperCase(), brandColor: '#8b5cf6' })
 
 onMounted(async () => {
   if (!tenantId) {
@@ -20,9 +20,20 @@ onMounted(async () => {
     return
   }
   try {
-    const response = await fetch(`${BASE_URL}/events/public/tenant/${tenantId}`)
-    if (!response.ok) throw new Error('Error al cargar eventos')
-    events.value = await response.json()
+    const [eventsRes, infoRes] = await Promise.all([
+      fetch(`${BASE_URL}/events/public/tenant/${tenantId}`),
+      fetch(`${BASE_URL}/public/tenant/${tenantId}/info`)
+    ])
+    
+    if (eventsRes.ok) {
+      events.value = await eventsRes.json()
+    } else {
+      throw new Error('Error al cargar eventos')
+    }
+    
+    if (infoRes.ok) {
+      tenantInfo.value = await infoRes.json()
+    }
   } catch (e) {
     errorMsg.value = 'No se pudieron cargar los eventos.'
   } finally {
@@ -61,7 +72,7 @@ function scarcityLabel(tiers: any[]) {
     <header class="sticky top-0 z-50 bg-[#0d0d0d]/90 backdrop-blur-md border-b border-gray-800/60">
       <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <div class="font-black text-xl tracking-widest uppercase text-white">VANTAGE</div>
-        <div class="text-sm text-gray-400 hidden md:block font-mono">{{ orgName }}</div>
+        <div class="text-sm text-gray-400 hidden md:block font-mono">{{ tenantInfo.name }}</div>
       </div>
     </header>
 
@@ -73,9 +84,9 @@ function scarcityLabel(tiers: any[]) {
       </div>
       <div class="relative z-10 text-center px-4">
         <div class="w-16 h-16 rounded-2xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center mx-auto mb-4 text-2xl font-black text-violet-400 tracking-tight">
-          {{ orgName.charAt(0) }}
+          {{ tenantInfo.name.charAt(0) }}
         </div>
-        <h1 class="text-3xl font-black tracking-tight text-white">{{ orgName }}</h1>
+        <h1 class="text-3xl font-black tracking-tight text-white">{{ tenantInfo.name }}</h1>
         <p class="text-gray-400 text-sm mt-1 font-mono">Eventos disponibles</p>
       </div>
     </div>

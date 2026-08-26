@@ -35,6 +35,21 @@ export class OrderController {
     return this.orderService.recoverOrder(body.email, body.accessPin);
   }
 
+  @Get(':id')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  async getOrderCloud(
+    @Param('id') id: string,
+    @Query('email') email: string,
+    @Query('accessPin') accessPin: string
+  ) {
+    const order = await this.orderService.recoverOrder(email, accessPin);
+    if (order.id !== id) {
+      throw new BadRequestException('ID mismatch');
+    }
+    return order;
+  }
+
   @Get(':id/pdf')
   @UseGuards(ThrottlerGuard)
   async downloadPdf(

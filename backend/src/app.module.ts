@@ -47,6 +47,7 @@ import { AnalyticsService } from './services/analytics.service';
 import { TicketTierController } from './controllers/ticket-tier.controller';
 import { TicketController } from './controllers/ticket.controller';
 import { OrderController } from './controllers/order.controller';
+import { PublicController } from './controllers/public.controller';
 
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { RolesGuard } from './guards/roles.guard';
@@ -80,6 +81,7 @@ import { RolesGuard } from './guards/roles.guard';
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 5 }]),
   ],
   controllers: [
+    PublicController,
     AppController,
     AuthController,
     TenantController,
