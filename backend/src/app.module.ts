@@ -92,7 +92,8 @@ import { RolesGuard } from './guards/roles.guard';
     AnalyticsController,
     TicketTierController,
     TicketController,
-    OrderController
+    OrderController,
+    UploadController
   ],
   providers: [
     {

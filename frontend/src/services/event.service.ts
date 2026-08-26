@@ -11,13 +11,12 @@ export const EventService = {
 
   async saveEvent(eventData: any, tiers: any[]) {
     if (eventData.id) {
-      // Actualizar evento existente
       await api.put(`/events/${eventData.id}`, {
         name: eventData.name,
         date: eventData.date,
         location: eventData.location,
+        bannerUrl: eventData.bannerUrl,
       })
-      // Actualizar tiers existentes, crear los nuevos
       for (const tier of tiers) {
         if (tier.id) {
           await api.put(`/ticket-tiers/${tier.id}`, {
@@ -40,13 +39,12 @@ export const EventService = {
       }
       return api.get(`/events/${eventData.id}`)
     } else {
-      // Crear evento nuevo
       const createdEvent: any = await api.post<any>('/events', {
         name: eventData.name,
         date: eventData.date,
         location: eventData.location,
+        bannerUrl: eventData.bannerUrl,
       })
-      // Crear tiers
       for (const tier of tiers) {
         await api.post('/ticket-tiers', {
           eventId: createdEvent.id,
