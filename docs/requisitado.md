@@ -34,3 +34,18 @@ Define **cómo** el sistema debe comportarse a nivel de arquitectura, rendimient
 El sistema permite que las organizaciones (Tenants) personalicen su portal de ventas.
 - Los administradores pueden establecer un color de marca (`brandColor`) y un dominio personalizado (`customDomain`).
 - Estos datos se persisten en una tabla `tenant_configs` relacionada uno-a-uno con el `Tenant`.
+
+---
+
+## 🌟 Funcionalidades Extra (Mejoras Post-Requisitos)
+
+Durante el ciclo de desarrollo se implementaron las siguientes mejoras de calidad de vida y funcionalidades avanzadas que **no estaban contempladas en los requisitos originales**, pero que añaden valor directo al producto:
+
+*   **FE1 - Escáner de Puerta con Efecto Espejo (Mirror-Mode):** Se añadió una transformación visual (`transform: scaleX(-1)`) a la cámara en `StaffScannerView` para eliminar la disonancia cognitiva del staff al mover el dispositivo, logrando una experiencia natural sin alterar la lectura real del QR.
+*   **FE2 - Generador Nativo de QRs (Sin APIs Externas):** Se reemplazó el uso de `api.qrserver.com` por la librería `qrcode.vue` instalada localmente, permitiendo que la vista web de "Éxito" dibuje las firmas criptográficas en tiempo real y offline (mejorando la privacidad y tiempo de carga).
+*   **FE3 - Estandarización y Retrocompatibilidad de QRs:** El sistema fue mejorado para que los QRs inyecten un JSON estructurado (`{ ticketId, signature }`). Adicionalmente, el escáner de la puerta se dotó de "retrocompatibilidad", haciéndolo capaz de traducir en tiempo real formatos de payload antiguos sin romper la validación estricta de NestJS.
+*   **FE4 - Interceptor Global Anti-Ghosting (401):** Se creó una regla global en el cliente Axios/Fetch (`api.ts`) que intercepta cualquier error `401 Unauthorized`. Si el token expira mientras la pantalla del escáner está abierta, el sistema limpia los cachés sucios y expulsa al usuario al Login automáticamente conservando el `?redirect`.
+*   **FE5 - Soporte Multidivisa Dinámico:** La tienda pública B2C detecta la configuración del Tenant y cambia automáticamente el símbolo y código de la moneda (USD, EUR, MXN, etc.) renderizado en los precios.
+*   **FE6 - Barra de Inventario Matemática Precisa:** La barra de escasez de boletos en la tienda se reescribió para abandonar anchos "falsos" (25%, 50%). Ahora calcula milimétricamente el progreso en tiempo real (`availableStock / capacity * 100`).
+*   **FE7 - Dashboard Analítico B2B (ApexCharts):** Se desarrolló un panel de inteligencia de negocios con gráficas de área y anillos reales que consultan de forma nativa las ventas (Total Sold, Total Revenue) directamente desde PostgreSQL.
+*   **FE8 - Expansión del Motor de Webhooks:** El procesador de BullMQ se potenció para no solo emitir eventos de `ORDER_COMPLETED`, sino también notificar a los sistemas externos cuando un carrito caduca por falta de pago (`ORDER_EXPIRED`) o cuando el organizador lo cancela manualmente (`ORDER_CANCELLED`).
