@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import QrcodeVue from 'qrcode.vue'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -17,19 +18,35 @@ const flattenedTickets = computed(() => {
 
 async function fetchOrder() {
   const orderId = route.query.orderId as string
+  const email = route.query.email as string
+  const accessPin = route.query.accessPin as string
+  
   if (!orderId) { router.push('/'); return }
+  
   try {
-    // Intentamos recuperar desde localStorage primero (por si acabamos de pagar)
+    // Intentamos recuperar desde localStorage primero (flujo normal checkout)
     const cached = localStorage.getItem(`order_success_${orderId}`)
     if (cached) {
       order.value = JSON.parse(cached)
       return
     }
-    // Si no hay caché, redirigimos al flujo de recuperación
+    
+    // Si hay credenciales, llamamos al backend
+    if (email && accessPin) {
+      const response = await fetch(`${BASE_URL}/orders/${orderId}?email=${encodeURIComponent(email)}&accessPin=${encodeURIComponent(accessPin)}`)
+      if (response.ok) {
+        order.value = await response.json()
+        return
+      } else {
+        throw new Error('No autorizado')
+      }
+    }
+    
+    // Si no hay caché ni credenciales, redirigimos al flujo de recuperación
     router.push('/recover')
   } catch (e) {
-    alert('Orden no encontrada')
-    router.push('/')
+    alert('Orden no encontrada o credenciales inválidas')
+    router.push('/recover')
   } finally {
     loading.value = false
   }
@@ -56,7 +73,7 @@ onMounted(() => { fetchOrder() })
   <div class="min-h-screen bg-[#131313] text-white flex flex-col md:flex-row">
     
     <div v-if="loading" class="flex flex-1 items-center justify-center">
-      <div class="animate-pulse text-violet-400 font-bold text-xl">Generando Boletos...</div>
+      <div class="animate-pulse text-violet-400 font-bold text-xl">Cargando Boletos...</div>
     </div>
 
     <template v-else-if="order">
@@ -64,7 +81,7 @@ onMounted(() => { fetchOrder() })
       <div class="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center border-r border-gray-800">
         <div class="bg-green-900/20 text-green-400 border border-green-500/30 px-4 py-2 rounded-full inline-flex items-center gap-2 mb-8 self-start text-sm font-bold">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-          Pago Exitoso
+          Boletos Activos
         </div>
 
         <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-white mb-6">
@@ -72,7 +89,7 @@ onMounted(() => { fetchOrder() })
         </h1>
         
         <p class="text-gray-400 text-lg mb-8 leading-relaxed">
-          Para garantizar la fricción cero, <strong>no te hemos enviado ningún correo</strong>. Toda la entrega ocurre ahora mismo en esta pantalla.
+          Escanea el código QR en la puerta de acceso. No necesitas imprimirlo, puedes mostrarlo desde tu teléfono.
         </p>
 
         <!-- PIN de Seguridad -->
@@ -84,7 +101,7 @@ onMounted(() => { fetchOrder() })
             </div>
           </div>
           <p class="text-xs text-gray-500 mt-4">
-            Si cierras esta pestaña, necesitarás tu correo ({{ order.clientEmail || order.email }}) y este PIN para recuperar tus boletos.
+            Si cierras esta pestaña, necesitarás tu correo ({{ order.clientEmail || order.email }}) y este PIN para recuperar tus boletos. Puedes guardar este enlace en favoritos.
           </p>
         </div>
 
@@ -106,8 +123,8 @@ onMounted(() => { fetchOrder() })
             <p class="text-violet-200 text-xs mt-1 font-mono opacity-80">Boleto #{{ currentTicketIndex + 1 }}</p>
           </div>
           <div class="p-8 flex flex-col items-center bg-gray-50">
-            <div class="w-48 h-48 bg-white border-4 border-white shadow-sm rounded-lg overflow-hidden flex items-center justify-center mb-6">
-              <img v-if="flattenedTickets[currentTicketIndex]?.signature" :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${flattenedTickets[currentTicketIndex]?.signature}`" alt="QR Code" class="w-full h-full object-contain" />
+            <div class="w-48 h-48 bg-white border-4 border-white shadow-sm rounded-lg overflow-hidden flex items-center justify-center mb-6 p-2">
+              <QrcodeVue v-if="flattenedTickets[currentTicketIndex]?.signature" :value="flattenedTickets[currentTicketIndex].signature" :size="180" level="H" />
               <div v-else class="text-gray-400 text-xs text-center">QR pendiente</div>
             </div>
             <div class="w-full border-t-2 border-dashed border-gray-300 my-2"></div>
