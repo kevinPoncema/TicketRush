@@ -38,6 +38,27 @@ export class EventRepository {
       .getMany();
   }
 
+  async findPublicEvents(tenantId: string, page: number = 1, limit: number = 10, status: 'upcoming' | 'past' = 'upcoming'): Promise<{ data: Event[], total: number, page: number, limit: number }> {
+    const query = this.repository.createQueryBuilder('event')
+      .leftJoinAndSelect('event.ticketTiers', 'ticketTiers')
+      .where('event.tenant_id = :tenantId', { tenantId });
+
+    if (status === 'upcoming') {
+      query.andWhere('event.date >= :now', { now: new Date() })
+           .orderBy('event.date', 'ASC');
+    } else {
+      query.andWhere('event.date < :now', { now: new Date() })
+           .orderBy('event.date', 'DESC');
+    }
+
+    const [data, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, total, page, limit };
+  }
+
   async findByIdPublic(id: string): Promise<Event> {
     const event = await this.repository.findOne({
       where: { id },

@@ -14,6 +14,10 @@ export class EventService {
     return this.eventRepository.findAllByTenant(tenantId);
   }
 
+  async getPublicEvents(tenantId: string, page?: number, limit?: number, status?: 'upcoming' | 'past') {
+    return this.eventRepository.findPublicEvents(tenantId, page, limit, status);
+  }
+
   async getEvent(id: string, tenantId: string): Promise<Event> {
     return this.eventRepository.findByIdAndTenant(id, tenantId);
   }
