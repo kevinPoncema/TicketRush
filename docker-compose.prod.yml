@@ -4,7 +4,7 @@ services:
       context: ./frontend
       args:
         - VITE_API_URL=${VITE_API_URL:-https://api.tudominio.com}
-    ports:
+    expose:
       - "80"
     depends_on:
       - backend
@@ -13,7 +13,7 @@ services:
   backend:
     build:
       context: ./backend
-    ports:
+    expose:
       - "3000"
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-ticketrush_secure_pass}@db:5432/${POSTGRES_DB:-ticketrush}
