@@ -46,7 +46,8 @@ const router = createRouter({
     {
       path: '/scanner',
       name: 'scanner',
-      component: () => import('../views/b2b/StaffScannerView.vue')
+      component: () => import('../views/b2b/StaffScannerView.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/auth/register',
@@ -112,7 +113,7 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/auth/login')
+    next(`/auth/login?redirect=${encodeURIComponent(to.fullPath)}`)
   } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
     next('/')
   } else {

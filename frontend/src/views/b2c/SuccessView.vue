@@ -124,7 +124,7 @@ onMounted(() => { fetchOrder() })
           </div>
           <div class="p-8 flex flex-col items-center bg-gray-50">
             <div class="w-48 h-48 bg-white border-4 border-white shadow-sm rounded-lg overflow-hidden flex items-center justify-center mb-6 p-2">
-              <QrcodeVue v-if="flattenedTickets[currentTicketIndex]?.signature" :value="flattenedTickets[currentTicketIndex].signature" :size="180" level="H" />
+              <QrcodeVue v-if="flattenedTickets[currentTicketIndex]?.signature" :value="JSON.stringify({ ticketId: flattenedTickets[currentTicketIndex].id, signature: flattenedTickets[currentTicketIndex].signature })" :size="180" level="H" />
               <div v-else class="text-gray-400 text-xs text-center">QR pendiente</div>
             </div>
             <div class="w-full border-t-2 border-dashed border-gray-300 my-2"></div>

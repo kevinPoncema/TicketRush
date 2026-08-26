@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth.store'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const form = ref({
@@ -16,7 +17,8 @@ async function submit() {
   loading.value = true
   try {
     await authStore.login(form.value)
-    router.push('/b2b')
+    const redirectPath = route.query.redirect as string
+    router.push(redirectPath || '/b2b')
   } catch (e) {
     alert('Credenciales inválidas')
   } finally {

@@ -28,6 +28,14 @@ async function request<T>(
   })
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('user')
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname
+        window.location.href = `/auth/login?redirect=${encodeURIComponent(currentPath)}`
+      }
+    }
     const errorBody = await response.json().catch(() => ({ message: response.statusText }))
     throw new Error(errorBody.message || `Error ${response.status}`)
   }

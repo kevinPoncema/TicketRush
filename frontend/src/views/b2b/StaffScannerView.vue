@@ -22,7 +22,14 @@ async function handleScanSuccess(decodedText: string) {
   try {
     let ticketPayload: { ticketId: string; signature: string }
     try {
-      ticketPayload = JSON.parse(decodedText)
+      const parsed = JSON.parse(decodedText)
+      ticketPayload = {
+        ticketId: parsed.ticketId || parsed.id,
+        signature: parsed.signature || parsed.sig
+      }
+      if (!ticketPayload.ticketId || !ticketPayload.signature) {
+        throw new Error('Faltan datos')
+      }
     } catch {
       throw new Error('QR inválido: formato no reconocido')
     }
@@ -155,7 +162,7 @@ onUnmounted(() => { stopScanner() })
 #reader__dashboard_section_csr,
 #reader__dashboard_section_swaplink { display: none !important; }
 #reader { border: none !important; }
-#reader video { object-fit: cover !important; }
+#reader video { object-fit: cover !important; transform: scaleX(-1) !important; }
 
 @keyframes scan {
   0%, 100% { transform: translateY(0); }

@@ -29,7 +29,7 @@ export class PdfService {
       doc.fontSize(14).text(`Ticket ID: ${ticket.id}`, { align: 'center' });
       doc.text(`Categoría: ${ticket.ticketTier.name}`, { align: 'center' });
 
-      const payload = JSON.stringify({ id: ticket.id, sig: ticket.signature });
+      const payload = JSON.stringify({ ticketId: ticket.id, signature: ticket.signature });
       const qrDataUrl = await QRCode.toDataURL(payload);
 
       doc.image(qrDataUrl, (doc.page.width - 200) / 2, doc.y + 20, { fit: [200, 200] });
