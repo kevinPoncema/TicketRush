@@ -1,0 +1,27 @@
+@startuml
+skinparam linetype ortho
+skinparam state {
+  BackgroundColor White
+  BorderColor #8b5cf6
+}
+
+state "Ciclo de Vida de la Orden" as OrderLifecycle {
+  [*] --> PENDING : Cliente selecciona boletos
+  
+  PENDING --> PAID : Pago exitoso (Stripe Webhook)
+  PENDING --> CANCELLED : Expira tiempo de reserva (15m)
+  
+  PAID --> [*]
+  CANCELLED --> [*]
+}
+
+state "Ciclo de Vida del Boleto (Ticket)" as TicketLifecycle {
+  [*] --> VALID : Orden cambia a PAID
+  
+  VALID --> USED : Staff escanea código QR
+  VALID --> REVOKED : Productora aplica reembolso / cancela
+  
+  USED --> [*]
+  REVOKED --> [*]
+}
+@enduml

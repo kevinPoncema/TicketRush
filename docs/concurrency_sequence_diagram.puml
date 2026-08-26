@@ -1,0 +1,53 @@
+@startuml
+skinparam maxmessagesize 150
+actor "Cliente" as client
+participant "API (NestJS)" as api
+database "PostgreSQL (TypeORM)" as db
+queue "Redis (BullMQ)" as redis
+participant "Stripe API" as stripe
+
+client -> api: POST /orders (Crear orden)
+activate api
+
+api -> db: BEGIN TRANSACTION
+activate db
+api -> db: SELECT ... FOR UPDATE (Bloqueo de concurrencia)
+db --> api: Stock actual del TicketTier
+
+alt Stock Insuficiente
+    api -> db: ROLLBACK
+    api --> client: 400 Bad Request (Sold out)
+else Stock Suficiente
+    api -> db: INSERT Order (Status: PENDING)
+    api -> db: UPDATE TicketTier (Reduce available_stock)
+    
+    api -> redis: Encola Job (Expiración en 15 mins)
+    activate redis
+    redis --> api: JobId
+    deactivate redis
+    
+    api -> db: COMMIT
+    deactivate db
+    
+    api -> stripe: paymentIntents.create()
+    activate stripe
+    stripe --> api: client_secret
+    deactivate stripe
+    
+    api --> client: 201 Created (Order + client_secret)
+end
+deactivate api
+
+== 15 Minutos Después (Escenario de Abandono) ==
+
+redis -> api: Dispara Job de Expiración
+activate api
+api -> db: Verifica status de la Orden
+db --> api: Status == PENDING
+
+alt Si la orden sigue PENDING
+    api -> db: UPDATE Order (Status: CANCELLED)
+    api -> db: UPDATE TicketTier (Restaura available_stock)
+end
+deactivate api
+@enduml

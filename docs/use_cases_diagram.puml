@@ -1,0 +1,73 @@
+@startuml
+' Configuración visual
+skinparam packageStyle rectangle
+skinparam actorStyle hollow
+left to right direction
+
+' Actores
+actor "Cliente (Comprador)" as client
+actor "Administrador (Productora)" as admin
+actor "Staff (Validador)" as staff
+actor "Sistema / Stripe" as system
+
+' Casos de Uso
+package "TicketRush - B2C (Tienda Pública)" {
+  usecase "Navegar catálogo del Tenant" as UC_Catalog
+  usecase "Seleccionar y Reservar Boletos" as UC_Reserve
+  usecase "Pagar Orden (Stripe)" as UC_Pay
+  usecase "Recuperar Boletos (PIN)" as UC_Recover
+  usecase "Descargar Boletos (PDF)" as UC_Download
+}
+
+package "TicketRush - B2B (Dashboard)" {
+  usecase "Registrar Organización (Tenant)" as UC_Register
+  usecase "Configurar Marca Blanca (Logo/Color)" as UC_Config
+  usecase "Gestionar Eventos" as UC_Events
+  usecase "Gestionar Tiers (Zonas/Precios)" as UC_Tiers
+  usecase "Ver Analíticas y Ventas" as UC_Analytics
+  usecase "Crear usuarios Staff" as UC_ManageStaff
+}
+
+package "TicketRush - Escáner (Control de Accesos)" {
+  usecase "Iniciar Sesión en app móvil/web" as UC_Login
+  usecase "Escanear Boleto QR" as UC_Scan
+  usecase "Validar Criptografía (Evitar Fraude)" as UC_Validate
+}
+
+package "Procesos Asíncronos (Backend)" {
+  usecase "Procesar Webhook de Pago" as UC_Webhook
+  usecase "Generar Tickets Oficiales" as UC_Generate
+  usecase "Liberar Reservas Expiradas (BullMQ)" as UC_Expire
+}
+
+' Relaciones - Cliente
+client --> UC_Catalog
+client --> UC_Reserve
+client --> UC_Pay
+client --> UC_Recover
+client --> UC_Download
+
+' Relaciones - Admin
+admin --> UC_Register
+admin --> UC_Config
+admin --> UC_Events
+admin --> UC_Tiers
+admin --> UC_Analytics
+admin --> UC_ManageStaff
+
+' Relaciones - Staff
+staff --> UC_Login
+staff --> UC_Scan
+staff --> UC_Validate
+
+' Relaciones - Sistema
+system --> UC_Webhook
+system --> UC_Expire
+
+' Dependencias internas (Includes/Extends)
+UC_Reserve ..> UC_Pay : <<precede>>
+UC_Webhook ..> UC_Generate : <<incluye>>
+UC_Scan ..> UC_Validate : <<incluye>>
+UC_Pay ..> UC_Webhook : <<dispara>>
+
+@enduml
