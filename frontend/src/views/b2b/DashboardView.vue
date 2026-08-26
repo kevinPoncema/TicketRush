@@ -35,6 +35,13 @@ function logout() {
       <router-link to="/b2b/integrations" class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors" active-class="bg-gray-800 text-white font-medium">
           Configuraciones
         </router-link>
+
+        <div class="pt-4 mt-4 border-t border-gray-800"></div>
+
+        <router-link :to="'/org/' + authStore.user?.tenantId" target="_blank" class="block px-4 py-2 text-sm font-bold text-violet-400 hover:bg-violet-900/30 hover:text-violet-300 rounded-lg transition-colors flex items-center justify-between">
+          <span>Ver mi Tienda</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </router-link>
             <router-link to="/scanner" class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors flex items-center gap-2 mt-4">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
           Modo Escáner (QR)
