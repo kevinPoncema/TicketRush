@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/auth.store'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const tenantId = route.params.tenantId as string
 
 const events = ref<any[]>([])
@@ -13,62 +15,64 @@ const loading = ref(true)
 const errorMsg = ref('')
 const tenantInfo = ref<any>({ name: tenantId.replace(/-/g, ' ').toUpperCase(), brandColor: '#8b5cf6' })
 
+const currentTab = ref<'upcoming' | 'past'>('upcoming')
+const currentPage = ref(1)
+const totalItems = ref(0)
+const totalPages = ref(1)
+const limit = 6
+
+async function loadStoreEvents(page = 1) {
+  loading.value = true
+  try {
+    const res = await fetch(`${BASE_URL}/events/store/${tenantId}?page=${page}&limit=${limit}&status=${currentTab.value}`)
+    if (!res.ok) throw new Error('No se pudieron cargar los eventos.')
+    const data = await res.json()
+    events.value = data.data
+    totalItems.value = data.total
+    currentPage.value = data.page
+    totalPages.value = Math.ceil(data.total / limit)
+  } catch(e: any) {
+    errorMsg.value = e.message || 'Error desconocido'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function changeTab(tab: 'upcoming' | 'past') {
+  currentTab.value = tab
+  currentPage.value = 1
+  await loadStoreEvents(1)
+}
+
+async function changePage(page: number) {
+  if (page < 1 || page > totalPages.value) return
+  await loadStoreEvents(page)
+}
+
 onMounted(async () => {
   if (!tenantId) {
     errorMsg.value = 'No se especificó una organización.'
     loading.value = false
     return
   }
+  
   try {
-    const [eventsRes, infoRes] = await Promise.all([
-      fetch(`${BASE_URL}/events/public/tenant/${tenantId}`),
-      fetch(`${BASE_URL}/public/tenant/${tenantId}/info`)
-    ])
-    
-    if (eventsRes.ok) {
-      events.value = await eventsRes.json()
-    } else {
-      throw new Error('Error al cargar eventos')
+    const tenantRes = await fetch(`${BASE_URL}/public/tenant/${tenantId}/info`)
+    if (tenantRes.ok) {
+      tenantInfo.value = await tenantRes.json()
+      document.title = `${tenantInfo.value.name} | Eventos`
     }
-    
-    if (infoRes.ok) {
-      tenantInfo.value = await infoRes.json()
-    }
-  } catch (e) {
-    errorMsg.value = 'No se pudieron cargar los eventos.'
-  } finally {
+    await loadStoreEvents(1)
+  } catch(e: any) {
+    errorMsg.value = e.message || 'Error desconocido'
     loading.value = false
   }
 })
-
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })
-}
-
-function daysUntil(dateStr: string) {
-  const diff = new Date(dateStr).getTime() - Date.now()
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
-}
-
-function lowestPrice(tiers: any[]) {
-  if (!tiers?.length) return null
-  return Math.min(...tiers.map(t => Number(t.price)))
-}
-
-function scarcityLabel(tiers: any[]) {
-  if (!tiers?.length) return null
-  const minStock = Math.min(...tiers.map(t => Number(t.availableStock ?? t.capacity)))
-  if (minStock <= 20) return { label: '¡Casi Agotado!', color: 'text-red-400 animate-pulse', dot: 'bg-red-500' }
-  if (minStock <= 50) return { label: 'Últimos Cupos', color: 'text-orange-400', dot: 'bg-orange-500' }
-  return { label: 'Disponible', color: 'text-green-400', dot: 'bg-green-500' }
-}
 </script>
 
 <template>
   <div class="min-h-screen bg-[#0d0d0d] text-white">
 
-    <!-- Header -->
     <header class="sticky top-0 z-50 bg-[#0d0d0d]/90 backdrop-blur-md border-b border-gray-800/60">
       <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <div class="font-black text-xl tracking-widest uppercase text-white">VANTAGE</div>
@@ -76,135 +80,125 @@ function scarcityLabel(tiers: any[]) {
       </div>
     </header>
 
-    <!-- Hero de la Organización -->
-    <div class="relative h-52 bg-black overflow-hidden flex items-center justify-center">
-      <div class="absolute inset-0 bg-gradient-to-br from-violet-900/40 via-black to-black"></div>
-      <div class="absolute inset-0 opacity-20"
-        style="background-image: radial-gradient(circle at 20% 80%, rgba(139,92,246,0.4) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(167,139,250,0.2) 0%, transparent 50%)">
-      </div>
-      <div class="relative z-10 text-center px-4">
-        <div class="w-16 h-16 rounded-2xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center mx-auto mb-4 text-2xl font-black text-violet-400 tracking-tight">
-          {{ tenantInfo.name.charAt(0) }}
+    <div class="bg-[#141414] border-b border-gray-800 relative overflow-hidden">
+      <div class="absolute inset-0 opacity-20" :style="`background: radial-gradient(circle at 50% -20%, ${tenantInfo.brandColor}, transparent 70%)`"></div>
+      <div class="max-w-6xl mx-auto px-6 py-20 relative flex flex-col items-center text-center">
+        <div class="w-32 h-32 rounded-full border-4 border-black bg-black flex items-center justify-center text-5xl font-black mb-6 overflow-hidden" :style="`color: ${tenantInfo.brandColor}`">
+          <img v-if="tenantInfo.logoUrl" :src="tenantInfo.logoUrl" alt="Logo" class="w-full h-full object-cover" />
+          <span v-else>{{ tenantInfo.name.charAt(0) }}</span>
         </div>
-        <h1 class="text-3xl font-black tracking-tight text-white">{{ tenantInfo.name }}</h1>
-        <p class="text-gray-400 text-sm mt-1 font-mono">Eventos disponibles</p>
+        <h1 class="text-5xl md:text-6xl font-black tracking-tighter uppercase mb-4">{{ tenantInfo.name }}</h1>
+        <p class="text-gray-400 text-lg md:text-xl max-w-2xl font-medium">Boutique de eventos y experiencias premium.</p>
+        
+        <div v-if="authStore.isAuthenticated && authStore.user?.tenantId === tenantId" class="mt-8">
+          <button @click="router.push('/b2b')" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg hover:scale-105 border border-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Volver al Dashboard B2B
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Contenido principal -->
     <main class="max-w-6xl mx-auto px-6 py-12">
 
-      <!-- Loading -->
-      <div v-if="loading" class="flex flex-col items-center justify-center py-32 gap-4">
-        <div class="w-12 h-12 rounded-full border-2 border-violet-500 border-t-transparent animate-spin"></div>
-        <p class="text-gray-400 text-sm">Cargando experiencias...</p>
+      <div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 class="text-3xl font-black text-white uppercase tracking-tight">Catálogo</h2>
+          <div class="w-24 h-1 mt-4" :style="`background-color: ${tenantInfo.brandColor}`"></div>
+        </div>
+        
+        <div class="flex items-center gap-2 bg-[#111] p-1 rounded-lg border border-gray-800">
+          <button 
+            @click="changeTab('upcoming')"
+            class="px-6 py-2 rounded-md text-sm font-bold transition-colors"
+            :class="currentTab === 'upcoming' ? 'text-white' : 'text-gray-500 hover:text-gray-300'"
+            :style="currentTab === 'upcoming' ? `background-color: ${tenantInfo.brandColor}` : ''"
+          >
+            Próximos
+          </button>
+          <button 
+            @click="changeTab('past')"
+            class="px-6 py-2 rounded-md text-sm font-bold transition-colors"
+            :class="currentTab === 'past' ? 'text-white' : 'text-gray-500 hover:text-gray-300'"
+            :style="currentTab === 'past' ? `background-color: ${tenantInfo.brandColor}` : ''"
+          >
+            Pasados
+          </button>
+        </div>
       </div>
 
-      <!-- Error -->
+      <div v-if="loading" class="flex flex-col items-center justify-center py-32 gap-4">
+        <div class="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin" :style="`border-color: ${tenantInfo.brandColor}`"></div>
+      </div>
+
       <div v-else-if="errorMsg" class="text-center py-32">
         <p class="text-red-400 font-bold text-xl">{{ errorMsg }}</p>
       </div>
 
-      <!-- Sin eventos -->
-      <div v-else-if="events.length === 0" class="text-center py-32">
-        <div class="text-6xl mb-6">🎫</div>
-        <h2 class="text-2xl font-bold text-white mb-3">No hay eventos próximos</h2>
-        <p class="text-gray-500">Esta organización no tiene eventos programados por el momento.</p>
+      <div v-else-if="events.length === 0" class="text-center py-24 bg-[#141414] rounded-2xl border border-gray-800">
+        <svg class="w-16 h-16 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <h3 class="text-xl font-bold text-gray-400">No hay eventos {{ currentTab === 'upcoming' ? 'próximos' : 'pasados' }}</h3>
+        <p class="text-gray-600 mt-2">{{ currentTab === 'upcoming' ? 'Pronto anunciaremos nuevas fechas.' : 'Aún no se ha realizado ningún evento.' }}</p>
       </div>
 
-      <!-- Grid de Eventos -->
-      <div v-else>
-        <div class="flex items-center justify-between mb-8">
-          <h2 class="text-2xl font-bold text-white">
-            {{ events.length }} evento{{ events.length !== 1 ? 's' : '' }} próximo{{ events.length !== 1 ? 's' : '' }}
-          </h2>
-          <span class="text-xs font-mono text-gray-500 uppercase tracking-widest">Ordenados por fecha</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
-            v-for="event in events"
-            :key="event.id"
-            @click="router.push(`/e/${event.id}`)"
-            class="group bg-[#141414] border border-gray-800 hover:border-violet-500/60 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:bg-[#1a1a1a] hover:shadow-[0_0_30px_rgba(139,92,246,0.1)] flex flex-col"
-          >
-            <!-- Tapa del evento -->
-            <div class="relative h-44 bg-black overflow-hidden">
-              <img
-                :src="event.bannerUrl || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60'"
-                class="w-full h-full object-cover opacity-30 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
-                alt=""
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent"></div>
-
-              <!-- Badge días restantes -->
-              <div class="absolute top-3 left-3">
-                <div
-                  class="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider"
-                  :class="daysUntil(event.date) <= 14 ? 'bg-violet-600 text-white' : 'bg-gray-800/90 text-gray-300'"
-                >
-                  {{ daysUntil(event.date) === 0 ? '¡HOY!' : `En ${daysUntil(event.date)} días` }}
-                </div>
-              </div>
-
-              <!-- Scarcity badge -->
-              <div v-if="scarcityLabel(event.ticketTiers)" class="absolute top-3 right-3">
-                <div class="flex items-center gap-1.5 bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                  <div class="w-1.5 h-1.5 rounded-full" :class="scarcityLabel(event.ticketTiers)?.dot"></div>
-                  <span class="text-xs font-bold" :class="scarcityLabel(event.ticketTiers)?.color">
-                    {{ scarcityLabel(event.ticketTiers)?.label }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Contenido de la tarjeta -->
-            <div class="p-6 flex flex-col flex-1">
-              <h3 class="text-lg font-black text-white uppercase tracking-tight leading-tight mb-3 group-hover:text-violet-300 transition-colors">
-                {{ event.name }}
-              </h3>
-
-              <div class="space-y-2 mb-4 flex-1">
-                <div class="flex items-center gap-2 text-gray-400 text-sm">
-                  <svg class="w-4 h-4 text-gray-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                  <span class="capitalize">{{ formatDate(event.date) }}</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-400 text-sm">
-                  <svg class="w-4 h-4 text-gray-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  <span>{{ event.location }}</span>
-                </div>
-              </div>
-
-              <!-- Footer de la tarjeta -->
-              <div class="flex items-center justify-between pt-4 border-t border-gray-800">
-                <div>
-                  <span class="text-xs text-gray-500 uppercase tracking-wider">Desde</span>
-                  <div class="text-xl font-black text-white">
-                    ${{ lowestPrice(event.ticketTiers)?.toFixed(2) }}
-                  </div>
-                </div>
-                <div class="bg-violet-600 group-hover:bg-violet-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
-                  Ver Evento
-                  <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
-                </div>
-              </div>
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <article 
+          v-for="event in events" 
+          :key="event.id"
+          @click="router.push(`/e/${event.id}`)"
+          class="group bg-[#141414] rounded-2xl overflow-hidden border border-gray-800/80 hover:border-gray-600 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col"
+        >
+          <div class="h-48 relative overflow-hidden bg-gray-900">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#141414] to-transparent z-10"></div>
+            <img 
+              :src="event.bannerUrl || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60'" 
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-60 group-hover:opacity-100 mix-blend-screen" 
+            />
+            <div class="absolute top-4 left-4 z-20">
+              <span class="px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-xs font-bold text-white border border-white/10 uppercase tracking-widest">
+                {{ new Date(event.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }) }}
+              </span>
             </div>
           </div>
-        </div>
+          
+          <div class="p-6 flex-1 flex flex-col">
+            <h3 class="text-2xl font-black text-white mb-2 leading-tight group-hover:text-transparent group-hover:bg-clip-text" :style="`background-image: linear-gradient(to right, white, ${tenantInfo.brandColor})`">
+              {{ event.name }}
+            </h3>
+            <div class="flex items-center gap-2 text-gray-400 text-sm mb-6 mt-auto">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span class="truncate">{{ event.location }}</span>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-gray-800/80">
+              <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Entradas desde</span>
+              <span class="text-lg font-black" :style="`color: ${tenantInfo.brandColor}`">
+                Ver info
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div v-if="totalPages > 1 && !loading" class="mt-12 flex justify-center items-center gap-4">
+        <button 
+          @click="changePage(currentPage - 1)" 
+          :disabled="currentPage === 1"
+          class="p-2 rounded-lg bg-[#1a1a1a] border border-gray-700 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <span class="text-sm font-medium text-gray-400">
+          Página <span class="text-white">{{ currentPage }}</span> de {{ totalPages }}
+        </span>
+        <button 
+          @click="changePage(currentPage + 1)" 
+          :disabled="currentPage === totalPages"
+          class="p-2 rounded-lg bg-[#1a1a1a] border border-gray-700 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
       </div>
     </main>
-
-    <!-- Footer mínimo -->
-    <footer class="border-t border-gray-800/50 py-8 mt-12">
-      <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <span class="text-gray-600 text-xs font-mono uppercase tracking-widest">Powered by VANTAGE Ticketing</span>
-        <div class="flex gap-6 text-xs text-gray-600">
-          <a href="#" class="hover:text-gray-400 transition-colors">Privacidad</a>
-          <a href="#" class="hover:text-gray-400 transition-colors">Términos</a>
-          <a href="#" class="hover:text-gray-400 transition-colors">Soporte</a>
-        </div>
-      </div>
-    </footer>
 
   </div>
 </template>

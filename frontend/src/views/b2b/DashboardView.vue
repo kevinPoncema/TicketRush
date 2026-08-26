@@ -26,6 +26,9 @@ function logout() {
         <router-link to="/b2b" class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors" exact-active-class="bg-gray-800 text-white font-medium">
           Resumen
         </router-link>
+        <router-link to="/b2b/events" class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors" active-class="bg-gray-800 text-white font-medium">
+          Mis Eventos
+        </router-link>
                 <router-link to="/b2b/staff" class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors" active-class="bg-gray-800 text-white font-medium">
           Gestión de Staff
         </router-link>
