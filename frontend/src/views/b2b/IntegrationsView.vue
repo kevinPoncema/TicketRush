@@ -129,6 +129,24 @@ onMounted(() => {
             v-model="form.customDomain" 
             placeholder="tickets.miproductora.com" 
           />
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-300 mb-2">Logo de la Empresa (Sube o Pega URL)</label>
+            <div class="flex items-center gap-4">
+              <div class="relative w-16 h-16 rounded-full bg-black border-2 border-dashed border-gray-700 flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:border-violet-500 transition-colors shrink-0">
+                <img v-if="form.logoUrl" :src="form.logoUrl" class="w-full h-full object-cover" />
+                <span v-else class="text-[10px] text-gray-500 text-center leading-tight">Subir<br/>Logo</span>
+                <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" @change="handleLogoUpload" :disabled="uploading" />
+                <div v-if="uploading" class="absolute inset-0 bg-black/80 flex items-center justify-center">
+                  <div class="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              </div>
+              <div class="flex-1">
+                <BaseInput label="" v-model="form.logoUrl" placeholder="Sube un archivo o pega el link directo..." />
+                <p class="text-[10px] text-gray-500 mt-1">Soporta S3, DigitalOcean Spaces, u URLs externas.</p>
+              </div>
+            </div>
+          </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1">Moneda de Cobro (Stripe)</label>

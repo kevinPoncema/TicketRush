@@ -10,6 +10,36 @@ const route = useRoute()
 
 const isEditing = ref(false)
 const loading = ref(false)
+const uploading = ref(false)
+
+async function handleBannerUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (!input.files || input.files.length === 0) return
+  
+  uploading.value = true
+  const formData = new FormData()
+  formData.append('file', input.files[0])
+  
+  try {
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+    const token = localStorage.getItem('access_token')
+    
+    const response = await fetch(`${BASE_URL}/upload/image?entity=event`, {
+      method: 'POST',
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: formData
+    })
+    
+    if (!response.ok) throw new Error('Error subiendo imagen')
+    const data = await response.json()
+    form.value.bannerUrl = data.url
+  } catch(e) {
+    alert('Fallo al subir el banner al servidor')
+  } finally {
+    uploading.value = false
+    input.value = ''
+  }
+}
 
 const form = ref({
   id: '',
@@ -99,7 +129,21 @@ onMounted(() => {
             <BaseInput label="Ubicación" v-model="form.location" required placeholder="Estadio Nacional, Neo-Tokyo" />
           </div>
           <div class="md:col-span-2">
-            <BaseInput label="URL del Banner" v-model="form.bannerUrl" placeholder="https://..." />
+            <label class="block text-sm font-medium text-gray-300 mb-2">Banner del Evento (Sube o Pega URL)</label>
+            <div class="flex items-center gap-4">
+              <div class="relative w-24 h-14 rounded-lg bg-black border-2 border-dashed border-gray-700 flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:border-violet-500 transition-colors shrink-0">
+                <img v-if="form.bannerUrl" :src="form.bannerUrl" class="w-full h-full object-cover" />
+                <span v-else class="text-[10px] text-gray-500 text-center leading-tight">Subir<br/>Banner</span>
+                <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" @change="handleBannerUpload" :disabled="uploading" />
+                <div v-if="uploading" class="absolute inset-0 bg-black/80 flex items-center justify-center">
+                  <div class="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              </div>
+              <div class="flex-1">
+                <BaseInput label="" v-model="form.bannerUrl" placeholder="Sube un archivo o pega el link..." />
+                <p class="text-[10px] text-gray-500 mt-1">Soporta S3, DigitalOcean Spaces, u URLs externas.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
