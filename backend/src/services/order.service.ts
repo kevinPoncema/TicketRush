@@ -83,7 +83,9 @@ export class OrderService {
 
       return { ...order, clientSecret };
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
       throw error;
     } finally {
       await queryRunner.release();
@@ -201,7 +203,9 @@ export class OrderService {
         return { success: false, orderStatus: OrderStatus.FAILED, message: 'Payment rejected by gateway' };
       }
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
       throw error;
     } finally {
       await queryRunner.release();
