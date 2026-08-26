@@ -49,6 +49,7 @@ function proceedToCheckout() {
   if (totalItems.value === 0) return
   const checkoutData = {
     eventId: event.value.id,
+    currency: event.value.tenant?.tenantConfig?.currency || 'usd',
     tiers: Object.entries(selections.value)
       .filter(([_, qty]) => qty > 0)
       .map(([id, qty]) => {

@@ -28,10 +28,12 @@ async function loadConfig() {
 async function save() {
   saving.value = true
   try {
-    const payload = { ...form.value }
-    if (!payload.webhookUrl) payload.webhookUrl = null
-    if (!payload.customDomain) payload.customDomain = null
-    if (!payload.currency) payload.currency = 'usd'
+    const payload: any = { 
+      webhookUrl: form.value.webhookUrl || null,
+      customDomain: form.value.customDomain || null,
+      brandColor: form.value.brandColor || '#8b5cf6',
+      currency: form.value.currency || 'usd'
+    }
     await TenantService.updateConfig(payload)
     alert('Configuración guardada correctamente')
   } catch (e) {
