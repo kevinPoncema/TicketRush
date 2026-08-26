@@ -1,14 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource) { }
 
   async getTenantSummary(tenantId: string) {
     const queryRunner = this.dataSource.createQueryRunner();
     try {
-      // Ingresos Totales (Órdenes pagadas)
       const revenueResult = await queryRunner.query(
         `SELECT SUM(o.total_amount) as total_revenue
          FROM orders o
@@ -18,8 +17,6 @@ export class AnalyticsService {
          WHERE e.tenant_id = $1 AND o.status = 'PAID'`,
         [tenantId]
       );
-      // Las órdenes tienen varios tickets, la query anterior duplicará el total_amount por cada ticket.
-      // Mejor usamos una query correcta:
       const correctRevenue = await queryRunner.query(
         `SELECT SUM(o.total_amount) as total_revenue
          FROM orders o
@@ -34,7 +31,6 @@ export class AnalyticsService {
         [tenantId]
       );
 
-      // Tickets vendidos
       const ticketsResult = await queryRunner.query(
         `SELECT COUNT(t.id) as tickets_sold
          FROM tickets t
@@ -44,7 +40,6 @@ export class AnalyticsService {
         [tenantId]
       );
 
-      // Eventos activos
       const eventsResult = await queryRunner.query(
         `SELECT COUNT(id) as active_events
          FROM events
@@ -52,7 +47,6 @@ export class AnalyticsService {
         [tenantId]
       );
 
-      // Gráfica: Ingresos de los últimos 7 días
       const chartData = await queryRunner.query(
         `SELECT DATE(o.created_at) as date, SUM(o.total_amount) as amount
          FROM orders o
@@ -84,12 +78,11 @@ export class AnalyticsService {
   async getEventAnalytics(eventId: string, tenantId: string) {
     const queryRunner = this.dataSource.createQueryRunner();
     try {
-      // Asegurarse de que el evento pertenece al tenant
       const event = await queryRunner.query(
         `SELECT id FROM events WHERE id = $1 AND tenant_id = $2`,
         [eventId, tenantId]
       );
-      if (!event.length) throw new Error('Event not found or access denied');
+      if (!event.length) throw new ForbiddenException('Event not found or access denied');
 
       const revenueResult = await queryRunner.query(
         `SELECT SUM(o.total_amount) as total_revenue
@@ -127,7 +120,7 @@ export class AnalyticsService {
          ORDER BY DATE(o.created_at) ASC`,
         [eventId]
       );
-      
+
       const ticketsByTier = await queryRunner.query(
         `SELECT tt.name as tier, COUNT(t.id) as count
          FROM tickets t
