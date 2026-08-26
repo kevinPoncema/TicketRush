@@ -25,6 +25,8 @@ export class TenantConfigRepository {
       if (data.customDomain !== undefined) existing.customDomain = data.customDomain;
       if (data.brandColor !== undefined) existing.brandColor = data.brandColor;
       if (data.currency !== undefined) existing.currency = data.currency;
+      if (data.logoUrl !== undefined) existing.logoUrl = data.logoUrl;
+      if (data.bannerUrl !== undefined) existing.bannerUrl = data.bannerUrl;
       return this.repository.save(existing);
     } else {
       const newConfig = this.repository.create({ 
@@ -32,7 +34,9 @@ export class TenantConfigRepository {
         webhookUrl: data.webhookUrl,
         customDomain: data.customDomain,
         brandColor: data.brandColor || '#8b5cf6',
-        currency: data.currency || 'usd'
+        currency: data.currency || 'usd',
+        logoUrl: data.logoUrl,
+        bannerUrl: data.bannerUrl
       });
       return this.repository.save(newConfig);
     }
