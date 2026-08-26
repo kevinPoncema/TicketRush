@@ -6,13 +6,16 @@ import { TenantService } from '../../services/tenant.service'
 
 const loading = ref(true)
 const saving = ref(false)
-const uploading = ref(false)
+const uploadingLogo = ref(false)
+const uploadingBanner = ref(false)
 
-async function handleLogoUpload(event: Event) {
+async function handleFileUpload(event: Event, type: 'logo' | 'banner') {
   const input = event.target as HTMLInputElement
   if (!input.files || input.files.length === 0) return
   
-  uploading.value = true
+  if (type === 'logo') uploadingLogo.value = true
+  else uploadingBanner.value = true
+
   const formData = new FormData()
   formData.append('file', input.files[0])
   
@@ -28,28 +31,34 @@ async function handleLogoUpload(event: Event) {
     
     if (!response.ok) throw new Error('Error subiendo imagen')
     const data = await response.json()
-    form.value.logoUrl = data.url
+    
+    if (type === 'logo') form.value.logoUrl = data.url
+    else form.value.bannerUrl = data.url
   } catch(e) {
-    alert('Fallo al subir el logo al servidor')
+    alert('Fallo al subir el archivo al servidor')
   } finally {
-    uploading.value = false
+    if (type === 'logo') uploadingLogo.value = false
+    else uploadingBanner.value = false
     input.value = ''
   }
 }
-
 
 const form = ref({
   webhookUrl: '',
   customDomain: '',
   brandColor: '#8b5cf6',
   currency: 'usd',
-  logoUrl: ''
+  logoUrl: '',
+  bannerUrl: ''
 })
 
 async function loadConfig() {
   try {
     const data: any = await TenantService.getConfig()
-    form.value = data
+    form.value = {
+      ...form.value,
+      ...data
+    }
   } catch (e) {
     console.error(e)
   } finally {
@@ -64,7 +73,9 @@ async function save() {
       webhookUrl: form.value.webhookUrl || null,
       customDomain: form.value.customDomain || null,
       brandColor: form.value.brandColor || '#8b5cf6',
-      currency: form.value.currency || 'usd'
+      currency: form.value.currency || 'usd',
+      logoUrl: form.value.logoUrl || null,
+      bannerUrl: form.value.bannerUrl || null
     }
     await TenantService.updateConfig(payload)
     alert('Configuración guardada correctamente')
@@ -93,7 +104,7 @@ onMounted(() => {
 
     <form v-else @submit.prevent="save" class="space-y-8">
       
-      <!-- Sección de Automatización (Webhooks) -->
+      <!-- Automatización -->
       <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 p-6 space-y-6">
         <div>
           <h3 class="text-xl font-bold text-violet-400 flex items-center gap-2">
@@ -116,34 +127,68 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Sección de Marca (White-Label) -->
+      <!-- Marca -->
       <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 p-6 space-y-6">
         <div>
           <h3 class="text-xl font-bold text-violet-400">Personalización de Marca (White-label)</h3>
           <p class="text-sm text-gray-400 mt-1">Ajusta la apariencia del motor de reservas para que coincida con la identidad de tu productora.</p>
         </div>
         
-        <div class="pt-2 border-t border-gray-800 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <BaseInput 
-            label="Dominio Personalizado (Opcional)" 
-            v-model="form.customDomain" 
-            placeholder="tickets.miproductora.com" 
-          />
-
+        <div class="pt-2 border-t border-gray-800 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-300 mb-2">Logo de la Empresa (Sube o Pega URL)</label>
-            <div class="flex items-center gap-4">
-              <div class="relative w-16 h-16 rounded-full bg-black border-2 border-dashed border-gray-700 flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:border-violet-500 transition-colors shrink-0">
-                <img v-if="form.logoUrl" :src="form.logoUrl" class="w-full h-full object-cover" />
-                <span v-else class="text-[10px] text-gray-500 text-center leading-tight">Subir<br/>Logo</span>
-                <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" @change="handleLogoUpload" :disabled="uploading" />
-                <div v-if="uploading" class="absolute inset-0 bg-black/80 flex items-center justify-center">
-                  <div class="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+            <BaseInput 
+              label="Dominio Personalizado (Opcional)" 
+              v-model="form.customDomain" 
+              placeholder="tickets.miproductora.com" 
+            />
+          </div>
+
+          <!-- Logo -->
+          <div class="md:col-span-2 flex flex-col gap-2">
+            <label class="block text-sm font-medium text-gray-300">Logo de la Empresa</label>
+            <div class="flex items-center gap-6">
+              <div class="group relative w-32 h-32 rounded-full bg-black border-2 border-dashed border-gray-700 flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:border-violet-500 transition-colors shrink-0 shadow-lg">
+                <img v-if="form.logoUrl" :src="form.logoUrl" class="w-full h-full object-cover transition-opacity group-hover:opacity-40" />
+                <span v-if="!form.logoUrl" class="text-xs text-gray-500 text-center leading-tight font-medium">Subir<br/>Logo</span>
+                
+                <div class="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+                  <svg class="w-6 h-6 text-white mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  <span class="text-[10px] font-bold text-white shadow-sm">{{ form.logoUrl ? 'Cambiar' : 'Seleccionar' }}</span>
+                </div>
+
+                <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" @change="(e) => handleFileUpload(e, 'logo')" :disabled="uploadingLogo" />
+                <div v-if="uploadingLogo" class="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                  <div class="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               </div>
               <div class="flex-1">
-                <BaseInput label="" v-model="form.logoUrl" placeholder="Sube un archivo o pega el link directo..." />
-                <p class="text-[10px] text-gray-500 mt-1">Soporta S3, DigitalOcean Spaces, u URLs externas.</p>
+                <BaseInput label="URL del Logo (Opcional)" v-model="form.logoUrl" placeholder="Sube un archivo o pega el link directo..." />
+                <p class="text-[10px] text-gray-500 mt-1">Recomendado: Cuadrado (1:1), fondo transparente.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Banner -->
+          <div class="md:col-span-2 flex flex-col gap-2">
+            <label class="block text-sm font-medium text-gray-300">Banner de la Organización</label>
+            <div class="flex items-center gap-6">
+              <div class="group relative w-48 h-28 rounded-xl bg-black border-2 border-dashed border-gray-700 flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:border-violet-500 transition-colors shrink-0 shadow-lg">
+                <img v-if="form.bannerUrl" :src="form.bannerUrl" class="w-full h-full object-cover transition-opacity group-hover:opacity-40" />
+                <span v-if="!form.bannerUrl" class="text-xs text-gray-500 text-center leading-tight font-medium">Subir<br/>Banner</span>
+                
+                <div class="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+                  <svg class="w-6 h-6 text-white mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  <span class="text-xs font-bold text-white shadow-sm">{{ form.bannerUrl ? 'Cambiar Imagen' : 'Seleccionar' }}</span>
+                </div>
+
+                <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" @change="(e) => handleFileUpload(e, 'banner')" :disabled="uploadingBanner" />
+                <div v-if="uploadingBanner" class="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                  <div class="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              </div>
+              <div class="flex-1">
+                <BaseInput label="URL del Banner (Opcional)" v-model="form.bannerUrl" placeholder="Sube un archivo o pega el link directo..." />
+                <p class="text-[10px] text-gray-500 mt-1">Este banner aparecerá en la cabecera de tu Tienda Pública.</p>
               </div>
             </div>
           </div>

@@ -81,7 +81,11 @@ onMounted(async () => {
     </header>
 
     <div class="bg-[#141414] border-b border-gray-800 relative overflow-hidden">
-      <div class="absolute inset-0 opacity-20" :style="`background: radial-gradient(circle at 50% -20%, ${tenantInfo.brandColor}, transparent 70%)`"></div>
+      <!-- Fondo por defecto con gradiente -->
+      <div v-if="!tenantInfo.bannerUrl" class="absolute inset-0 opacity-20" :style="`background: radial-gradient(circle at 50% -20%, ${tenantInfo.brandColor}, transparent 70%)`"></div>
+      <!-- Imagen Banner del Tenant -->
+      <img v-else :src="tenantInfo.bannerUrl" class="absolute inset-0 w-full h-full object-cover opacity-20" />
+      <div v-if="tenantInfo.bannerUrl" class="absolute inset-0 bg-gradient-to-t from-[#141414] to-transparent"></div>
       <div class="max-w-6xl mx-auto px-6 py-20 relative flex flex-col items-center text-center">
         <div class="w-32 h-32 rounded-full border-4 border-black bg-black flex items-center justify-center text-5xl font-black mb-6 overflow-hidden" :style="`color: ${tenantInfo.brandColor}`">
           <img v-if="tenantInfo.logoUrl" :src="tenantInfo.logoUrl" alt="Logo" class="w-full h-full object-cover" />

@@ -21,6 +21,9 @@ export class TenantConfig {
   @Column({ name: 'logo_url', nullable: true })
   logoUrl: string;
 
+  @Column({ name: 'banner_url', nullable: true })
+  bannerUrl: string;
+
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 

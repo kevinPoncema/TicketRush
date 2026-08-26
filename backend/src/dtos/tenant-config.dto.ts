@@ -1,5 +1,5 @@
 import { IsString, IsUrl, IsOptional, Matches, ValidateIf } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpsertTenantConfigDto {
   @ApiProperty({ example: 'https://hooks.zapier.com/hooks/catch/...', required: false })
@@ -30,4 +30,9 @@ export class UpsertTenantConfigDto {
   @IsUrl({}, { message: 'Must be a valid URL for the logo' })
   @IsOptional()
   logoUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsUrl()
+  @IsOptional()
+  bannerUrl?: string;
 }

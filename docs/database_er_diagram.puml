@@ -27,6 +27,11 @@ entity "tenant_configs" as tenant_configs {
   *tenant_id : VARCHAR <<PK, FK>>
   --
   webhook_url : VARCHAR
+  custom_domain : VARCHAR
+  brand_color : VARCHAR
+  currency : VARCHAR
+  logo_url : VARCHAR
+  banner_url : VARCHAR
   updated_at : TIMESTAMP
 }
 
@@ -37,6 +42,7 @@ entity "events" as events {
   *name : VARCHAR
   *date : TIMESTAMP
   *location : VARCHAR
+  banner_url : VARCHAR
   created_at : TIMESTAMP
 }
 
@@ -48,6 +54,7 @@ entity "ticket_tiers" as ticket_tiers {
   *price : DECIMAL(10,2)
   *capacity : INT
   *available_stock : INT
+  description : VARCHAR
   created_at : TIMESTAMP
 }
 
@@ -66,6 +73,7 @@ entity "orders" as orders {
   *total_amount : DECIMAL(10,2)
   status : ENUM
   *idempotency_key : VARCHAR
+  access_pin : VARCHAR
   expires_at : TIMESTAMP
   created_at : TIMESTAMP
 }

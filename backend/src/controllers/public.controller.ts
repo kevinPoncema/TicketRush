@@ -31,6 +31,7 @@ export class PublicController {
       name: tenant.name,
       brandColor: tenant.tenantConfig?.brandColor || '#8b5cf6',
       logoUrl: tenant.tenantConfig?.logoUrl || '',
+      bannerUrl: tenant.tenantConfig?.bannerUrl || '',
       currency: tenant.tenantConfig?.currency || 'usd',
     };
   }
