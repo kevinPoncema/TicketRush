@@ -42,6 +42,8 @@ import { TenantController } from './controllers/tenant.controller';
 import { EventController } from './controllers/event.controller';
 import { AuthController } from './controllers/auth.controller';
 import { TenantConfigController } from './controllers/tenant-config.controller';
+import { AnalyticsController } from './controllers/analytics.controller';
+import { AnalyticsService } from './services/analytics.service';
 import { TicketTierController } from './controllers/ticket-tier.controller';
 import { TicketController } from './controllers/ticket.controller';
 import { OrderController } from './controllers/order.controller';
@@ -83,6 +85,7 @@ import { RolesGuard } from './guards/roles.guard';
     TenantController,
     EventController,
     TenantConfigController,
+    AnalyticsController,
     TicketTierController,
     TicketController,
     OrderController
@@ -105,6 +108,7 @@ import { RolesGuard } from './guards/roles.guard';
     EventService,
     AuthService,
     TenantConfigService,
+    AnalyticsService,
     TicketTierService,
     TicketService,
     OrderService,

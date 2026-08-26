@@ -12,10 +12,12 @@
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "@stripe/stripe-js": "^9.14.0",
+    "apexcharts": "^7.0.0",
     "html5-qrcode": "^2.3.8",
     "pinia": "^4.0.3",
     "vue": "^3.5.41",
-    "vue-router": "^5.2.0"
+    "vue-router": "^5.2.0",
+    "vue3-apexcharts": "^1.11.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
