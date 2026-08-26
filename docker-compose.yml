@@ -3,6 +3,8 @@ services:
   frontend:
     build:
       context: ./frontend
+      target: build-stage
+    command: npm run dev -- --host
     ports:
       - "5173:5173"
     environment:
@@ -18,8 +20,13 @@ services:
       - "host.docker.internal:host-gateway"
     build:
       context: ./backend
+    command: npm run start:dev
     ports:
       - "3000:3000"
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/dist
     env_file:
       - ./backend/.env
     environment:
