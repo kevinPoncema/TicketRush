@@ -28,10 +28,13 @@ El proyecto utiliza un enfoque agnóstico en su base de datos, pero se apoya en 
 
 **Backend & Infraestructura:**
 - **NestJS**: Framework principal (Node.js).
-- **Prisma ORM**: Manejo de base de datos y migraciones.
+- **TypeORM**: Mapeo relacional de objetos y control avanzado de transacciones pesimistas.
 - **PostgreSQL / MySQL**: Base de datos relacional transaccional.
 - **Redis & BullMQ**: Orquestación de colas, Delayed Jobs y manejo de eventos asíncronos.
 - **Docker & Docker Compose**: Contenerización de infraestructura.
+
+**Integraciones:**
+- **Stripe**: Pasarela de pagos conectada nativamente mediante Stripe Elements.
 
 **Frontend:**
 - **Vue 3 (Composition API)**: Interfaz de usuario reactiva.
@@ -58,8 +61,6 @@ ticketrush/
 │   │   ├── jobs/             # Capa Asíncrona (Processors de BullMQ para colas de Redis)
 │   │   └── infrastructure/   # Conexiones externas (PrismaService, configuración de Redis)
 │   │
-│   └── prisma/
-│       └── schema.prisma     # Definición del esquema relacional y abstracción de BD
 │
 └── docker-compose.yml        # Orquestación local (Servidor SQL + Redis)
 ```
@@ -171,26 +172,12 @@ git clone https://github.com/tu-usuario/ticketrush.git
 cd ticketrush
 ```
 
-Levantar la infraestructura base (Base de Datos y Redis):
+Levantar toda la infraestructura (Base de Datos, Redis, Backend y Frontend):
 ```bash
-docker-compose up -d
+docker compose up -d --build
 ```
-
-Configurar y arrancar el Backend:
-```bash
-cd backend
-npm install
-# Configurar variables de entorno (.env)
-npx prisma migrate dev
-npm run start:dev
-```
-
-Arrancar el Frontend:
-```bash
-cd ../frontend
-npm install
-npm run dev
-```
+La aplicación estará disponible inmediatamente en `http://localhost:5173`.
+Los servicios de backend operarán en el puerto `:3000`.
 
 ---
 *Diseñado como prueba de concepto para arquitecturas de alta concurrencia y despliegues B2B.*
