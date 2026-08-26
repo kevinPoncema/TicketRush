@@ -76,7 +76,7 @@ export class OrderService {
           }
         }
       } catch (e) {
-         console.warn('Could not fetch currency, falling back to usd');
+        console.warn('Could not fetch currency, falling back to usd');
       }
 
       const clientSecret = await this.stripeService.createPaymentIntent(totalAmount, order.id, currency);
@@ -181,7 +181,7 @@ export class OrderService {
         await this.ticketRepository.saveBulk(order.tickets, queryRunner.manager);
 
         await queryRunner.commitTransaction();
-        
+
         // Enviar evento asíncrono para notificar por Webhook
         await this.webhookQueue.add('send-webhook', { orderId: order.id });
 
@@ -231,6 +231,9 @@ export class OrderService {
       }
 
       await queryRunner.commitTransaction();
+
+      await this.webhookQueue.add('send-webhook', { orderId: lockedOrder.id, eventType: 'ORDER_CANCELLED' });
+
       return lockedOrder;
     } catch (err) {
       await queryRunner.rollbackTransaction();

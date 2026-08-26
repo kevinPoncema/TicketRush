@@ -15,8 +15,8 @@ export class WebhookProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<{ orderId: string }, any, string>): Promise<any> {
-    const { orderId } = job.data;
+  async process(job: Job<{ orderId: string, eventType?: string }, any, string>): Promise<any> {
+    const { orderId, eventType } = job.data;
 
     const order = await this.orderRepo.findByIdWithFullRelations(orderId);
 
@@ -35,7 +35,7 @@ export class WebhookProcessor extends WorkerHost {
     }
 
     const payload = {
-      event: 'ORDER_COMPLETED',
+      event: eventType || 'ORDER_COMPLETED',
       timestamp: new Date().toISOString(),
       data: {
         orderId: order.id,
