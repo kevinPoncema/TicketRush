@@ -1,45 +1,56 @@
+version: '3.8'
+
 services:
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        - VITE_API_URL=${VITE_API_URL:-https://api.tudominio.com}
-    expose:
-      - "80"
-    depends_on:
-      - backend
-    restart: unless-stopped
+  db:
+    image: postgres:15-alpine
+    container_name: ticketrush_db_prod
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-ticketrush}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ticketrush}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ticketrush_redis_prod
+    restart: always
+    volumes:
+      - redis_data_prod:/data
 
   backend:
     build:
       context: ./backend
-    expose:
-      - "3000"
+    container_name: ticketrush_backend_prod
+    restart: always
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-ticketrush_secure_pass}@db:5432/${POSTGRES_DB:-ticketrush}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-ticketrush}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+    expose:
+      - "3000"
     depends_on:
-      - db
-      - redis
-    restart: unless-stopped
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
-  db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ticketrush_secure_pass}
-      - POSTGRES_DB=${POSTGRES_DB:-ticketrush}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    container_name: ticketrush_frontend_prod
+    restart: always
+    expose:
+      - "80"
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_data_prod:
+  redis_data_prod:
