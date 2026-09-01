@@ -162,7 +162,12 @@ onUnmounted(() => { stopScanner() })
 #reader__dashboard_section_csr,
 #reader__dashboard_section_swaplink { display: none !important; }
 #reader { border: none !important; }
-#reader video { object-fit: cover !important; transform: scaleX(-1) !important; }
+#reader video { 
+  object-fit: cover !important; 
+  transform: scaleX(-1) !important; 
+  -webkit-transform: scaleX(-1) !important;
+  transform-origin: center center !important;
+}
 
 @keyframes scan {
   0%, 100% { transform: translateY(0); }
