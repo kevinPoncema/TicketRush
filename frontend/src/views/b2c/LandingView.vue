@@ -30,16 +30,16 @@
 
       <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-bold tracking-wide uppercase mb-8">
         <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
-        El motor de ticketing B2B
+        Plataforma Marca Blanca para Productoras
       </div>
 
       <h1 class="text-6xl md:text-8xl font-black tracking-tighter leading-tight max-w-5xl mb-8">
-        Vende boletos con <br/>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-500 to-white">cero fricción.</span>
+        Toma el control de <br/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-500 to-white">tu propia taquilla.</span>
       </h1>
       
       <p class="text-gray-400 text-lg md:text-xl max-w-2xl mb-12 leading-relaxed">
-        Plataforma minimalista de alta conversión. Sin envíos de correos, sin fricción. Almacenamiento persistente en dispositivo y recuperación segura por PIN para tus compradores.
+        Lanza tu tienda de eventos bajo tu propia identidad, vende boletos de forma segura y maximiza tus ingresos sin pagar comisiones abusivas por entrada.
       </p>
 
       <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">

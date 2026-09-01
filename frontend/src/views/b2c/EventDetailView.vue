@@ -131,8 +131,8 @@ onMounted(() => { loadEvent() })
       </div>
 
       <!-- Tickets Selection -->
-      <div class="max-w-5xl mx-auto px-6 mt-12">
-        <h2 class="text-3xl font-bold tracking-tight mb-8">Seleccionar Boletos</h2>
+      <div class="max-w-5xl mx-auto px-6 mt-4 pb-32">
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mb-4">Seleccionar Boletos</h2>
         <div class="space-y-6">
           <div v-for="(tier, index) in (event.ticketTiers || [])" :key="tier.id"
                class="bg-[#141414] border border-gray-800 rounded-xl overflow-hidden flex flex-col md:flex-row relative group transition-colors hover:bg-[#1a1a1a]"

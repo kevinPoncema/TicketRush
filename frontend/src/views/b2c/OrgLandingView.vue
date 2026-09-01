@@ -86,8 +86,8 @@ onMounted(async () => {
       <!-- Imagen Banner del Tenant -->
       <img v-else :src="tenantInfo.bannerUrl" class="absolute inset-0 w-full h-full object-cover opacity-20" />
       <div v-if="tenantInfo.bannerUrl" class="absolute inset-0 bg-gradient-to-t from-[#141414] to-transparent"></div>
-      <div class="max-w-6xl mx-auto px-6 py-20 relative flex flex-col items-center text-center">
-        <div class="w-32 h-32 rounded-full border-4 border-black bg-black flex items-center justify-center text-5xl font-black mb-6 overflow-hidden" :style="`color: ${tenantInfo.brandColor}`">
+      <div class="max-w-6xl mx-auto px-6 py-10 md:py-16 relative flex flex-col items-center text-center">
+        <div class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-black bg-black flex items-center justify-center text-5xl font-black mb-6 overflow-hidden" :style="`color: ${tenantInfo.brandColor}`">
           <img v-if="tenantInfo.logoUrl" :src="tenantInfo.logoUrl" alt="Logo" class="w-full h-full object-cover" />
           <span v-else>{{ tenantInfo.name.charAt(0) }}</span>
         </div>
@@ -103,9 +103,9 @@ onMounted(async () => {
       </div>
     </div>
 
-    <main class="max-w-6xl mx-auto px-6 py-12">
+    <main class="max-w-6xl mx-auto px-6 py-8">
 
-      <div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h2 class="text-3xl font-black text-white uppercase tracking-tight">Catálogo</h2>
           <div class="w-24 h-1 mt-4" :style="`background-color: ${tenantInfo.brandColor}`"></div>
