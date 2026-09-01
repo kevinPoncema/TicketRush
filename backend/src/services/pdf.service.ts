@@ -6,6 +6,25 @@ import { PassThrough } from 'stream';
 
 @Injectable()
 export class PdfService {
+
+  private async fetchImageAsBuffer(url: string): Promise<Buffer | null> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return null;
+
+      const contentType = response.headers.get('content-type');
+
+      if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
+        return null;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch {
+      return null;
+    }
+  }
+
   async generateOrderPdf(order: Order): Promise<PassThrough> {
     const doc = new PDFDocument({ margin: 0, size: 'A4' });
     const stream = new PassThrough();
@@ -17,7 +36,7 @@ export class PdfService {
       const event = ticket.ticketTier.event;
       const tenantConfig = event.tenant?.tenantConfig;
       const brandColor = tenantConfig?.brandColor || '#8b5cf6';
-      
+
       if (i > 0) doc.addPage();
 
       // Background
@@ -35,14 +54,34 @@ export class PdfService {
 
       // Header Area (Brand Color)
       doc.rect(startX, startY, width, 120).fill(brandColor);
-      
+
       // Header Text
-      doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text('TICKET DE ENTRADA', startX, startY + 45, { align: 'center', width });
-      doc.fontSize(12).font('Helvetica').text('Presenta este código en la puerta', startX, startY + 80, { align: 'center', width });
+      const tenantName = event.tenant?.name || 'VANTAGE';
+
+      // Load logo if exists and compatible (JPEG/PNG)
+      let logoBuffer: Buffer | null = null;
+      if (tenantConfig?.logoUrl) {
+        logoBuffer = await this.fetchImageAsBuffer(tenantConfig.logoUrl);
+      }
+
+      if (logoBuffer) {
+        try {
+          doc.image(logoBuffer, startX + 20, startY + 20, { fit: [80, 80] });
+          doc.fillColor('#ffffff').fontSize(22).font('Helvetica-Bold').text('ENTRADA', startX + 110, startY + 45, { align: 'left', width: width - 120 });
+          doc.fontSize(12).font('Helvetica').text(`Por: ${tenantName}`, startX + 110, startY + 75, { align: 'left', width: width - 120 });
+        } catch {
+          // Fallback if image still fails rendering
+          doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text('TICKET DE ENTRADA', startX, startY + 45, { align: 'center', width });
+          doc.fontSize(12).font('Helvetica').text(`Organizado por: ${tenantName}`, startX, startY + 80, { align: 'center', width });
+        }
+      } else {
+        doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text('TICKET DE ENTRADA', startX, startY + 45, { align: 'center', width });
+        doc.fontSize(12).font('Helvetica').text(`Organizado por: ${tenantName}`, startX, startY + 80, { align: 'center', width });
+      }
 
       // Event Info
       doc.fillColor('#111827').fontSize(28).font('Helvetica-Bold').text(event.name.toUpperCase(), startX, startY + 160, { align: 'center', width });
-      
+
       // Dashed separator
       doc.moveTo(startX + 20, startY + 220).lineTo(startX + width - 20, startY + 220).dash(5, { space: 5 }).stroke('#d1d5db');
       doc.undash();
@@ -60,10 +99,10 @@ export class PdfService {
 
       // QR Code Generation
       const payload = JSON.stringify({ ticketId: ticket.id, signature: ticket.signature });
-      const qrDataUrl = await QRCode.toDataURL(payload, { 
-        width: 200, 
-        margin: 1, 
-        color: { dark: '#000000', light: '#ffffff' } 
+      const qrDataUrl = await QRCode.toDataURL(payload, {
+        width: 200,
+        margin: 1,
+        color: { dark: '#000000', light: '#ffffff' }
       });
 
       // Render QR
