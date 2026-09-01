@@ -19,8 +19,6 @@ export const AuthService = {
   },
 
   async listMembers() {
-    // El backend aún no tiene este endpoint: GET /auth/members
-    // Por ahora devolvemos array vacío para no romper la UI
-    return Promise.resolve([])
+    return api.get<any[]>('/auth/members')
   },
 }

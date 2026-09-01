@@ -35,8 +35,7 @@ async function createMember() {
 }
 
 async function deleteMember(id: string) {
-  // El backend no implementa DELETE /auth/member/:id todavía.
-  // Ver docs/pendiente.md para detalles.
+
   try { await AuthService.deleteMember(id); await fetchMembers(); } catch (e) { alert('Error al eliminar'); }
 }
 
@@ -63,7 +62,6 @@ onMounted(() => {
       
       <div v-else-if="members.length === 0" class="p-8 text-center">
         <p class="text-gray-500 mb-2">No hay miembros registrados en este Tenant.</p>
-        <p class="text-xs text-gray-600">El listado de miembros estará disponible cuando el backend implemente el endpoint <code class="text-violet-400">GET /auth/members</code>.</p>
       </div>
 
       <table v-else class="w-full text-left">
