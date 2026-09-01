@@ -1,3 +1,19 @@
+import { 
+  UserAlreadyExistsException, 
+  SelfDeletionNotAllowedException, 
+  InvalidCredentialsException,
+  TicketNotFoundException,
+  UnauthorizedTenantAccessException,
+  InvalidCryptographicSignatureException,
+  TicketAlreadyUsedException,
+  InvalidTicketStatusException,
+  CloudStorageException,
+  EventNotFoundException,
+  OrderAlreadyProcessedException,
+  MissingParameterException,
+  TicketSoldOutException,
+  OrderNotFoundException
+} from '../exceptions';
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -22,7 +38,7 @@ export class AuthService {
     try {
       const existingUser = await queryRunner.manager.findOne(User, { where: { email: data.userEmail } });
       if (existingUser) {
-        throw new BadRequestException('Email is already in use');
+        throw new UserAlreadyExistsException();
       }
 
       const tenant = new Tenant();
@@ -55,10 +71,10 @@ export class AuthService {
 
   async login(email: string, pass: string) {
     const user = await this.userRepository.findByEmail(email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) throw new InvalidCredentialsException();
 
     const isMatch = await bcrypt.compare(pass, user.password);
-    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+    if (!isMatch) throw new InvalidCredentialsException();
 
     const payload = { sub: user.id, email: user.email, tenantId: user.tenantId, role: user.role };
     return {
@@ -72,7 +88,7 @@ export class AuthService {
 
   async deleteMember(adminUser: any, memberId: string) {
     if (adminUser.id === memberId) {
-      throw new BadRequestException('No puedes eliminarte a ti mismo.');
+      throw new SelfDeletionNotAllowedException();
     }
     await this.userRepository.deleteByIdAndTenant(memberId, adminUser.tenantId);
   }

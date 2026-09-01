@@ -1,3 +1,19 @@
+import { 
+  UserAlreadyExistsException, 
+  SelfDeletionNotAllowedException, 
+  InvalidCredentialsException,
+  TicketNotFoundException,
+  UnauthorizedTenantAccessException,
+  InvalidCryptographicSignatureException,
+  TicketAlreadyUsedException,
+  InvalidTicketStatusException,
+  CloudStorageException,
+  EventNotFoundException,
+  OrderAlreadyProcessedException,
+  MissingParameterException,
+  TicketSoldOutException,
+  OrderNotFoundException
+} from '../exceptions';
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { extname } from 'path';
@@ -22,7 +38,7 @@ export class UploadService {
   async uploadImage(file: Express.Multer.File, entity: string, tenantId: string): Promise<string> {
     const bucket = process.env.AWS_BUCKET;
     if (!bucket) {
-      throw new InternalServerErrorException('AWS_BUCKET not configured');
+      throw new CloudStorageException('AWS_BUCKET not configured');
     }
 
     const timestamp = Date.now();
@@ -44,7 +60,7 @@ export class UploadService {
       return `${baseUrl}/${key}`;
     } catch (error) {
       this.logger.error(`Error uploading file to S3: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Error uploading image to cloud storage');
+      throw new CloudStorageException('Error uploading image to cloud storage');
     }
   }
 }

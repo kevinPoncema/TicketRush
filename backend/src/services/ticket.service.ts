@@ -1,3 +1,19 @@
+import { 
+  UserAlreadyExistsException, 
+  SelfDeletionNotAllowedException, 
+  InvalidCredentialsException,
+  TicketNotFoundException,
+  UnauthorizedTenantAccessException,
+  InvalidCryptographicSignatureException,
+  TicketAlreadyUsedException,
+  InvalidTicketStatusException,
+  CloudStorageException,
+  EventNotFoundException,
+  OrderAlreadyProcessedException,
+  MissingParameterException,
+  TicketSoldOutException,
+  OrderNotFoundException
+} from '../exceptions';
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { TicketRepository } from '../Repositories/ticket.repository';
@@ -17,16 +33,16 @@ export class TicketService {
     const ticket = await this.ticketRepository.findById(ticketId);
 
     if (!ticket) {
-      throw new NotFoundException('Ticket not found');
+      throw new TicketNotFoundException();
     }
 
     if (ticket.ticketTier.event.tenantId !== staffUser.tenantId) {
-      throw new ForbiddenException('Este boleto no pertenece a tu organización');
+      throw new UnauthorizedTenantAccessException();
     }
     const expectedSignature = this.generateTicketSignature(ticket.id, ticket.orderId);
 
     if (signature.length !== expectedSignature.length) {
-      throw new BadRequestException('Firma criptográfica inválida (Longitud incorrecta)');
+      throw new InvalidCryptographicSignatureException('Firma criptográfica inválida (Longitud incorrecta)');
     }
 
     const isSignatureValid = crypto.timingSafeEqual(
@@ -35,15 +51,15 @@ export class TicketService {
     );
 
     if (!isSignatureValid) {
-      throw new BadRequestException('Firma criptográfica inválida (Posible fraude)');
+      throw new InvalidCryptographicSignatureException('Firma criptográfica inválida (Posible fraude)');
     }
 
     if (ticket.status === TicketStatus.USED) {
-      throw new BadRequestException('El boleto ya fue USADO anteriormente en la puerta');
+      throw new TicketAlreadyUsedException();
     }
 
     if (ticket.status !== TicketStatus.VALID) {
-      throw new BadRequestException(`El boleto no es válido para ingreso. Estado actual: ${ticket.status}`);
+      throw new InvalidTicketStatusException(ticket.status);
     }
 
     ticket.status = TicketStatus.USED;

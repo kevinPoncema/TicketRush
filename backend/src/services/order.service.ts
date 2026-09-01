@@ -1,3 +1,19 @@
+import { 
+  UserAlreadyExistsException, 
+  SelfDeletionNotAllowedException, 
+  InvalidCredentialsException,
+  TicketNotFoundException,
+  UnauthorizedTenantAccessException,
+  InvalidCryptographicSignatureException,
+  TicketAlreadyUsedException,
+  InvalidTicketStatusException,
+  CloudStorageException,
+  EventNotFoundException,
+  OrderAlreadyProcessedException,
+  MissingParameterException,
+  TicketSoldOutException,
+  OrderNotFoundException
+} from '../exceptions';
 import { StripeService } from './stripe.service';
 import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
@@ -106,7 +122,7 @@ export class OrderService {
       const tier = await this.ticketTierRepository.findByIdAndLock(item.ticketTierId, manager);
 
       if (tier.availableStock < item.quantity) {
-        throw new BadRequestException(`Sold out: No hay suficiente stock para el tier ${tier.name}`);
+        throw new TicketSoldOutException();
       }
 
       tier.availableStock -= item.quantity;
@@ -167,7 +183,7 @@ export class OrderService {
       const order = await this.orderRepository.findByIdAndLock(orderId, queryRunner.manager);
 
       if (order.status !== OrderStatus.PENDING) {
-        throw new BadRequestException(`Cannot process payment: Order is already ${order.status}`);
+        throw new OrderAlreadyProcessedException(`Cannot process payment: Order is already ${order.status}`);
       }
 
       const isSuccess = true; // Cuando Stripe llama al webhook o frontend confirma, asumimos exito
@@ -221,7 +237,7 @@ export class OrderService {
       const lockedOrder = await this.orderRepository.findByIdAndLock(id, queryRunner.manager);
 
       if (lockedOrder.status !== OrderStatus.PENDING) {
-        throw new BadRequestException('Order is already finalized');
+        throw new OrderAlreadyProcessedException('Order is already finalized');
       }
 
       lockedOrder.status = OrderStatus.FAILED;
@@ -249,7 +265,7 @@ export class OrderService {
   async recoverOrder(email: string, accessPin: string) {
     const order = await this.orderRepository.findRecoverableOrder(email, accessPin);
     if (!order) {
-      throw new NotFoundException('Orden no encontrada o PIN incorrecto');
+      throw new OrderNotFoundException();
     }
     return order;
   }

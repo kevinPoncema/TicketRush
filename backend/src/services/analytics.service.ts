@@ -1,3 +1,19 @@
+import { 
+  UserAlreadyExistsException, 
+  SelfDeletionNotAllowedException, 
+  InvalidCredentialsException,
+  TicketNotFoundException,
+  UnauthorizedTenantAccessException,
+  InvalidCryptographicSignatureException,
+  TicketAlreadyUsedException,
+  InvalidTicketStatusException,
+  CloudStorageException,
+  EventNotFoundException,
+  OrderAlreadyProcessedException,
+  MissingParameterException,
+  TicketSoldOutException,
+  OrderNotFoundException
+} from '../exceptions';
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
@@ -82,7 +98,7 @@ export class AnalyticsService {
         `SELECT id FROM events WHERE id = $1 AND tenant_id = $2`,
         [eventId, tenantId]
       );
-      if (!event.length) throw new ForbiddenException('Event not found or access denied');
+      if (!event.length) throw new EventNotFoundException();
 
       const revenueResult = await queryRunner.query(
         `SELECT SUM(o.total_amount) as total_revenue
