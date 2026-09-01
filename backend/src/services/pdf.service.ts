@@ -15,7 +15,7 @@ export class PdfService {
     for (let i = 0; i < order.tickets.length; i++) {
       const ticket = order.tickets[i];
       const event = ticket.ticketTier.event;
-      const tenantConfig = event.tenant.tenantConfig;
+      const tenantConfig = event.tenant?.tenantConfig;
       const brandColor = tenantConfig?.brandColor || '#8b5cf6';
       
       if (i > 0) doc.addPage();

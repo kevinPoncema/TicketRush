@@ -78,7 +78,7 @@ export class OrderRepository {
       where: { accessPin, client: { email } },
       relations: {
         client: true,
-        tickets: { ticketTier: { event: true } }
+        tickets: { ticketTier: { event: { tenant: { tenantConfig: true } } } }
       }
     });
   }
