@@ -43,6 +43,6 @@ export class AuthController {
   @Roles(UserRole.ADMIN)
   @Delete('member/:id')
   deleteMember(@Req() req: any, @Param('id') id: string) {
-    return this.authService.deleteMember(req.user.tenantId, id);
+    return this.authService.deleteMember(req.user, id);
   }
 }

@@ -35,8 +35,12 @@ async function createMember() {
 }
 
 async function deleteMember(id: string) {
-
-  try { await AuthService.deleteMember(id); await fetchMembers(); } catch (e) { alert('Error al eliminar'); }
+  try { 
+    await AuthService.deleteMember(id); 
+    await fetchMembers(); 
+  } catch (e: any) { 
+    alert(e.message || 'Error al eliminar'); 
+  }
 }
 
 onMounted(() => {

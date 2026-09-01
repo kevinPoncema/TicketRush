@@ -70,8 +70,11 @@ export class AuthService {
     return this.userRepository.findByTenantId(tenantId);
   }
 
-  async deleteMember(tenantId: string, memberId: string) {
-    await this.userRepository.deleteByIdAndTenant(memberId, tenantId);
+  async deleteMember(adminUser: any, memberId: string) {
+    if (adminUser.id === memberId) {
+      throw new BadRequestException('No puedes eliminarte a ti mismo.');
+    }
+    await this.userRepository.deleteByIdAndTenant(memberId, adminUser.tenantId);
   }
 
   async createMember(adminUser: any, data: any) {
