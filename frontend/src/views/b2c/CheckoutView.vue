@@ -220,7 +220,7 @@ async function confirmPayment() {
       </div>
 
       <!-- Resumen -->
-      <div class="lg:col-span-5">
+      <div class="lg:col-span-5 order-first lg:order-last">
         <div class="sticky top-8 bg-[#1a1a1a] p-6 rounded-2xl border border-gray-800 shadow-2xl">
           <div class="flex items-center justify-between bg-red-900/20 border border-red-500/30 p-4 rounded-xl mb-6">
             <div>

@@ -91,7 +91,7 @@ onMounted(async () => {
           <img v-if="tenantInfo.logoUrl" :src="tenantInfo.logoUrl" alt="Logo" class="w-full h-full object-cover" />
           <span v-else>{{ tenantInfo.name.charAt(0) }}</span>
         </div>
-        <h1 class="text-5xl md:text-6xl font-black tracking-tighter uppercase mb-4">{{ tenantInfo.name }}</h1>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-black break-words tracking-tighter uppercase mb-4">{{ tenantInfo.name }}</h1>
         <p class="text-gray-400 text-lg md:text-xl max-w-2xl font-medium">Boutique de eventos y experiencias premium.</p>
         
         <div v-if="authStore.isAuthenticated && authStore.user?.tenantId === tenantId" class="mt-8">

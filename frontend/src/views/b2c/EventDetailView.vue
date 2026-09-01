@@ -116,7 +116,7 @@ onMounted(() => { loadEvent() })
             <div class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></div>
             <span class="text-xs font-mono tracking-widest text-gray-300 uppercase">Selling Fast</span>
           </div>
-          <h1 class="text-6xl md:text-8xl font-black text-white mb-6 leading-none tracking-tighter uppercase">{{ event.name }}</h1>
+          <h1 class="text-4xl sm:text-6xl md:text-8xl font-black text-white break-words mb-6 leading-none tracking-tighter uppercase">{{ event.name }}</h1>
           <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-10 text-gray-400 font-mono text-sm uppercase tracking-wider">
             <div class="flex items-center gap-3">
               <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -199,12 +199,12 @@ onMounted(() => { loadEvent() })
 
       <!-- Sticky bar -->
       <div v-if="totalItems > 0" class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/90 to-transparent pointer-events-none z-50">
-        <div class="max-w-5xl mx-auto bg-violet-600 border border-violet-400/30 rounded-2xl p-5 flex justify-between items-center shadow-[0_0_40px_rgba(139,92,246,0.3)] pointer-events-auto backdrop-blur-lg">
-          <div>
+        <div class="max-w-5xl mx-auto bg-violet-600 border border-violet-400/30 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-[0_0_40px_rgba(139,92,246,0.3)] pointer-events-auto backdrop-blur-lg">
+          <div class="text-center sm:text-left">
             <div class="text-violet-200 text-xs font-bold uppercase tracking-widest mb-1">{{ totalItems }} boletos seleccionados</div>
             <div class="text-3xl font-black text-white">${{ totalPrice.toFixed(2) }} {{ event.tenant?.tenantConfig?.currency?.toUpperCase() || 'USD' }}</div>
           </div>
-          <button @click="proceedToCheckout" class="bg-white text-black hover:bg-gray-200 font-black px-10 py-4 rounded-xl transition-colors flex items-center gap-3 uppercase tracking-wider text-sm">
+          <button @click="proceedToCheckout" class="w-full sm:w-auto justify-center bg-white text-black hover:bg-gray-200 font-black px-10 py-4 rounded-xl transition-colors flex items-center gap-3 uppercase tracking-wider text-sm">
             Checkout
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </button>
