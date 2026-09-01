@@ -76,6 +76,16 @@ async function startScanner() {
       handleScanFailure
     )
     scanning.value = true
+    
+    // Forzar el modo espejo usando JS directamente para móviles rebeldes
+    setTimeout(() => {
+      const video = document.querySelector('#reader video') as HTMLVideoElement
+      if (video) {
+        video.style.transform = 'scaleX(-1)'
+        video.style.setProperty('-webkit-transform', 'scaleX(-1)')
+        video.style.transformOrigin = 'center center'
+      }
+    }, 500)
   } catch (err) {
     console.error("Error al iniciar el escáner:", err)
     alert("No se pudo acceder a la cámara. Asegúrate de dar permisos.")
